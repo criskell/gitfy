@@ -1,7 +1,7 @@
 import fs from "fs/promises";
 import ini from "ini";
 
-interface Config {
+export interface Config {
   core: {
     repositoryformatversion: number;
     filemode: boolean;

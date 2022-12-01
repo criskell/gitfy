@@ -1,6 +1,7 @@
 import nodePath from "path";
 
 import { createTree } from "../util/filesystem";
+import { encode, DEFAULT_CONFIG } from "../config";
 
 interface InitRequest {
   /**
@@ -37,8 +38,14 @@ export const init = async (request: InitRequest = {}) => {
       "heads": {},
       "tags": {},
     },
-    "HEAD": "",
-    "config": "",
+    "HEAD": "ref: refs/heads/master\n",
+    "config": encode({
+      ...DEFAULT_CONFIG,
+      core: {
+        ...DEFAULT_CONFIG.core,
+        bare: isBare,
+      }
+    }),
     "description": "",
-  });
+  }, gitDirectory);
 };

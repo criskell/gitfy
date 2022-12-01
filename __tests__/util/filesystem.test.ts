@@ -1,7 +1,7 @@
 import fs from "fs/promises";
 import { vol } from "memfs";
 
-import { exists } from "../../src/util/filesystem";
+import { exists, createTree } from "../../src/util/filesystem";
 
 jest.mock("fs/promises");
 
@@ -18,6 +18,23 @@ describe("util/filesystem", () => {
 
     it("deve retornar false se um diretório não existe", async () => {
       expect(await exists("/bar.txt")).toBe(false);
+    });
+  });
+
+  describe("createTree", () => {
+    it("deve criar uma estrutura de diretórios", async () => {
+      const cwd = process.cwd();
+
+      await createTree({
+        "foo.txt": "bar",
+        "bar": {
+          "foo.txt": "baz"
+        }
+      });
+
+      expect(await exists(`${cwd}/foo.txt`)).toBe(true);
+      expect(await exists(`${cwd}/bar/foo.txt`)).toBe(true);
+      expect(await fs.readFile(`${cwd}/bar/foo.txt`, "utf8")).toBe("baz");
     });
   });
 });

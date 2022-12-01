@@ -8,7 +8,9 @@ type Tree = {
 export const createTree = async (tree: Tree, baseDirectory?: string) => {
   const dir = baseDirectory || process.cwd();
 
-  return Promise.all(Object.entries(tree).map(([name, contents]) => {
+  await fs.mkdir(dir, { recursive: true });
+
+  return await Promise.all(Object.entries(tree).map(([name, contents]) => {
     const path = nodePath.join(dir, name);
 
     if (typeof contents === "string") {

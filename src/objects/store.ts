@@ -20,13 +20,18 @@ export class ObjectStore {
     }
   }
 
-  public async add (object: GitObject): Promise<string> {
-    const { objectId, data } = await wrapObject(object);
+  public async set (objectId: ObjectId, data: Buffer) {
     const directory = `${this.path}/${objectId.slice(0, 2)}`;
     const savePath = `${directory}/${objectId.slice(2)}`;
 
     await fs.mkdir(directory, { recursive: true });
     await fs.writeFile(savePath, data);
+  }
+
+  public async add (object: GitObject): Promise<string> {
+    const { objectId, data } = await wrapObject(object);
+
+    await this.set(objectId, data);
 
     return objectId;
   }

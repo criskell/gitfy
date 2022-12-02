@@ -47,12 +47,6 @@ describe("objects/store", () => {
       const id = await store.add(blob);
       const unwrapped = await store.get(id);
 
-      console.log(
-        id,
-        await fs.readFile(`/.git/objects/${id.slice(0,2)}/${id.slice(2)}`),
-        JSON.stringify((await decompress(await fs.readFile(`/.git/objects/${id.slice(0,2)}/${id.slice(2)}`))).toString())
-      );
-
       expect(unwrapped).toEqual(blob);
     });
   });

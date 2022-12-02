@@ -1,15 +1,27 @@
 import util from "util";
 
-import { GitObject, ObjectType } from "./object";
+import { GitObject, ObjectType, ObjectId } from "./object";
+import { generateObjectId } from "./id";
 import { serializeObject, deserializeObject } from "./serialization";
 import { compress, decompress } from "../util/compression";
 
-export const wrapObject = async (obj: GitObject): Promise<Buffer> => {
+export type Wrapper = {
+  objectId: ObjectId;
+  data: Buffer;
+};
+
+export const wrapObject = async (obj: GitObject): Promise<Wrapper> => {
   const content = serializeObject(obj);
   const size = content.length;
   const header = Buffer.from(`${obj.type} ${size}\0`, "ascii");
 
-  return await compress(Buffer.concat([header, content]));
+  const raw = Buffer.concat([header, content]);
+  const objectId = generateObjectId(raw);
+
+  return {
+    objectId,
+    data: await compress(raw),
+  };
 };
 
 export const unwrapObject = async (wrapped: Buffer): Promise<GitObject | null> => {

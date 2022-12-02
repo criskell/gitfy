@@ -21,13 +21,12 @@ export class ObjectStore {
   }
 
   public async add (object: GitObject): Promise<string> {
-    const wrapped = await wrapObject(object);
-    const objectId = generateObjectId(wrapped);
+    const { objectId, data } = await wrapObject(object);
     const directory = `${this.path}/${objectId.slice(0, 2)}`;
     const savePath = `${directory}/${objectId.slice(2)}`;
 
     await fs.mkdir(directory, { recursive: true });
-    await fs.writeFile(savePath, wrapped);
+    await fs.writeFile(savePath, data);
 
     return objectId;
   }

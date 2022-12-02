@@ -1,5 +1,8 @@
 import util from "util";
 import zlib from "zlib";
 
-export const compress = util.promisify(zlib.deflate);
+const compressAsync = util.promisify(zlib.deflate);
+
+export const compress = (data: Buffer): Promise<Buffer> =>
+  compressAsync(data, { level: 1 });
 export const decompress = util.promisify(zlib.inflate);

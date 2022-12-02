@@ -31,4 +31,20 @@ describe("objects/store", () => {
       expect(objectExists).toBe(true);
     });
   });
+
+  describe("get()", () => {
+    it("deve retornar um objeto desencapsulado", async () => {
+      await fs.mkdir("/.git/objects", { recursive: true });
+
+      const store = new ObjectStore("/.git/objects"); 
+
+      const blob = {
+        type: ObjectType.BLOB,
+        content: Buffer.from("TATAKAE"),
+      };
+      const id = await store.add(blob);
+
+      expect(await store.get(id)).toEqual(blob);
+    });
+  });
 });

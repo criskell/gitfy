@@ -1,11 +1,24 @@
 import fs from "fs/promises";
 
-import { GitObject } from "./object";
-import { wrapObject } from "./wrapper";
+import { GitObject, ObjectId } from "./object";
+import { wrapObject, unwrapObject } from "./wrapper";
 import { generateObjectId } from "./id";
 
 export class ObjectStore {
   constructor (public path: string) {}
+
+  public async get (id: ObjectId): Promise<GitObject | null> {
+    const objectPath = `${this.path}/${id.slice(0, 2)}/${id.slice(2)}`;
+
+    try {
+      const content = await fs.readFile(objectPath);
+
+      return unwrapObject(content);
+    } catch (e) {
+      if (e.code === "ENOTENT") return null;
+      throw e;
+    }
+  }
 
   public async add (object: GitObject): Promise<string> {
     const wrapped = await wrapObject(object);

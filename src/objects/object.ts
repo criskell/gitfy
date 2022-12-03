@@ -5,35 +5,37 @@ import { sha1 } from "../util/hash";
 import { Wrapper } from "./wrapper";
 
 export type ObjectId = string;
-export type GitObject = blob.Blob;
+export type GitObject = blob.Blob | commit.Commit;
 export enum ObjectType {
   BLOB = "blob",
   COMMIT = "commit",
 }
 
-export const isValidType = (type: string): type is ObjectType => {
-  return Object.values(ObjectType).includes(type as ObjectType);
-};
-
-const serializers = {
-  [ObjectType.BLOB]: blob.serialize,
-  [ObjectType.COMMIT]: commit.serialize,
-};
-
-const deserializers = {
-  [ObjectType.BLOB]: blob.deserialize,
-  [ObjectType.COMMIT]: commit.deserialize,
-};
-
 export const serializeObject = (object: GitObject): Wrapper => {
+  let body: Buffer;
+
+  if (object.type === ObjectType.BLOB) {
+    body = blob.serialize(object);
+  }
+
+  if (object.type === ObjectType.COMMIT) {
+    body = commit.serialize(object);
+  }
+
   return {
     type: object.type,
-    body: serializers[object.type](object),
+    body,
   };
 };
 
-export const deserializeObject = ({ type, body }: Wrapper): GitObject => {
-  return deserializers[type](body) as Extract<GitObject, { type: typeof type }>;
+export const deserializeObject = ({ type, body }: Wrapper) => {
+  if (type === ObjectType.BLOB) {
+    return blob.deserialize(body);
+  }
+
+  if (type === ObjectType.COMMIT) {
+    return commit.deserialize(body);
+  }
 };
 
 export const generateObjectId = sha1;

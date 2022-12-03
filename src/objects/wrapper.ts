@@ -1,4 +1,4 @@
-import { ObjectType, isValidType } from "./object";
+import { ObjectType } from "./object";
 
 export interface Wrapper {
   type: ObjectType;
@@ -10,18 +10,20 @@ export const serialize = ({ type, body }: Wrapper): Buffer => {
   const header = Buffer.from(`${type} ${size}\0`, "ascii");
 
   return Buffer.concat([header, body]);
-}
+};
 
 export const deserialize = (serializedWrapper: Buffer): Wrapper => {
   const spaceIndex = serializedWrapper.indexOf(0x20);
   const type = serializedWrapper.toString("ascii", 0, spaceIndex);
 
-  if (! isValidType(type)) return null;
+  if (!Object.values(ObjectType).includes(type as ObjectType)) return null;
 
   const nullIndex = serializedWrapper.indexOf(0x00);
-  const size = parseInt(serializedWrapper.toString("ascii", spaceIndex + 1, nullIndex));
+  const size = parseInt(
+    serializedWrapper.toString("ascii", spaceIndex + 1, nullIndex)
+  );
 
-  if (! Number.isFinite(size)) return null;
+  if (!Number.isFinite(size)) return null;
 
   const body = serializedWrapper.subarray(nullIndex + 1, nullIndex + size + 1);
 

@@ -17,7 +17,7 @@ import { compress, decompress } from "../util/compression";
 export class ObjectStore {
   constructor (public path: string) {}
 
-  public async get (id: ObjectId): Promise<GitObject | null> {
+  public async get(id: ObjectId): Promise<any> {
     const serializedWrapper = await this.readRaw(id);
 
     if (! serializedWrapper) return null;

@@ -1,6 +1,6 @@
 import { ObjectType, ObjectId } from "../objects/object";
-import { serializeObject } from "../objects/serialization";
 import { ObjectStore } from "../objects/store";
+import { deserialize as deserializeWrapper } from "../objects/wrapper";
 
 export interface CatFileRequest {
   objectId: ObjectId;
@@ -8,7 +8,7 @@ export interface CatFileRequest {
 }
 
 export interface CatFileResponse {
-  raw: Buffer | null;
+  body: Buffer | null;
 }
 
 /**
@@ -17,11 +17,11 @@ export interface CatFileResponse {
  */
 export const catFile = (store: ObjectStore) =>
   async (request: CatFileRequest): Promise<CatFileResponse> => {
-  const object = await store.get(request.objectId);
+  const raw = await store.readRaw(request.objectId);
 
-  if (! object) return { raw: null };
+  if (! raw) return { body: null };
 
-  const raw = serializeObject(object);
+  const { body } = await deserializeWrapper(raw);
 
-  return { raw };
+  return { body };
 };

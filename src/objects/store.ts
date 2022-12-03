@@ -1,38 +1,59 @@
 import fs from "fs/promises";
 
-import { GitObject, ObjectId } from "./object";
-import { wrapObject, unwrapObject } from "./wrapper";
-import { generateObjectId } from "./id";
+import {
+  GitObject,
+  ObjectId,
+  generateObjectId,
+  deserializeObject,
+  serializeObject
+} from "./object";
+import {
+  Wrapper,
+  serialize as serializeWrapper,
+  deserialize as deserializeWrapper
+} from "./wrapper";
+import { compress, decompress } from "../util/compression";
 
 export class ObjectStore {
   constructor (public path: string) {}
 
   public async get (id: ObjectId): Promise<GitObject | null> {
-    const objectPath = `${this.path}/${id.slice(0, 2)}/${id.slice(2)}`;
+    const serializedWrapper = await this.readRaw(id);
+
+    if (! serializedWrapper) return null;
+
+    return deserializeObject(deserializeWrapper(serializedWrapper));
+  }
+
+  public async add (object: GitObject): Promise<string> {
+    const wrapped = serializeWrapper(serializeObject(object));
+    const objectId = generateObjectId(wrapped);
+
+    await this.writeRaw(objectId, wrapped);
+
+    return objectId;
+  }
+
+  public async writeRaw (objectId: ObjectId, raw: Buffer) {
+    const directory = `${this.path}/${objectId.slice(0, 2)}`;
+    const savePath = `${directory}/${objectId.slice(2)}`;
+    const compressed = await compress(raw);
+
+    await fs.mkdir(directory, { recursive: true });
+    await fs.writeFile(savePath, compressed);
+  }
+
+  public async readRaw (objectId: ObjectId): Promise<Buffer | null> {
+    const objectPath = `${this.path}/${objectId.slice(0, 2)}/${objectId.slice(2)}`;
 
     try {
-      const content = await fs.readFile(objectPath);
+      const compressed = await fs.readFile(objectPath);
+      const raw = await decompress(compressed);
 
-      return unwrapObject(content);
+      return raw;
     } catch (e) {
       if (e.code === "ENOTENT") return null;
       throw e;
     }
-  }
-
-  public async set (objectId: ObjectId, data: Buffer) {
-    const directory = `${this.path}/${objectId.slice(0, 2)}`;
-    const savePath = `${directory}/${objectId.slice(2)}`;
-
-    await fs.mkdir(directory, { recursive: true });
-    await fs.writeFile(savePath, data);
-  }
-
-  public async add (object: GitObject): Promise<string> {
-    const { objectId, data } = await wrapObject(object);
-
-    await this.set(objectId, data);
-
-    return objectId;
   }
 }

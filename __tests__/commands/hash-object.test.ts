@@ -15,7 +15,7 @@ describe("commands/hash-object", () => {
   it("deve converter os dados fornecidos em um objeto Git e retornar um identificador", async () => {
     const response = await hashObject()({
       type: ObjectType.BLOB,
-      data: Buffer.from("AAAAAA"),
+      body: Buffer.from("AAAAAA"),
       write: false,
     });
 

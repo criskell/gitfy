@@ -9,9 +9,9 @@ export const serialize = (blob: Blob): Buffer => {
   return blob.content;
 };
 
-export const deserialize = (raw: Buffer): Blob => {
+export const deserialize = (content: Buffer): Blob => {
   return {
     type: ObjectType.BLOB,
-    content: raw,
-  }
+    content,
+  };
 };

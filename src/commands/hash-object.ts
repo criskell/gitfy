@@ -1,11 +1,10 @@
-import { ObjectType, ObjectId } from "../objects/object";
+import { ObjectType, ObjectId, generateObjectId } from "../objects/object";
 import { ObjectStore } from "../objects/store";
-import { generateObjectId } from "../objects/id";
-import { compress } from "../util/compression";
+import * as wrapper from "../objects/wrapper";
 
 export interface HashObjectRequest {
   type: ObjectType;
-  data: Buffer;
+  body: Buffer;
   write: boolean;
 }
 
@@ -19,19 +18,15 @@ export interface HashObjectResponse {
  */
 export const hashObject = (store?: ObjectStore) =>
   async (request: HashObjectRequest): Promise<HashObjectResponse> => {
-  const size = request.data.length;
-  const data = request.data;
-
-  const header = Buffer.from(`${request.type} ${size}\0`, "ascii");
-  const raw = Buffer.concat([header, data]);
-
-  const objectId = generateObjectId(raw);
+  const wrapped = wrapper.serialize({
+    type: request.type,
+    body: request.body,
+  });
+  const id = generateObjectId(wrapped);
 
   if (request.write) {
-    await store.set(objectId, await compress(raw));
+    await store.writeRaw(id, wrapped);
   }
 
-  return {
-    id: objectId,
-  };
+  return { id };
 };

@@ -24,6 +24,6 @@ describe("commands/cat-file", () => {
 
     const response = await catFile(store)({ type: ObjectType.BLOB, objectId: id });
 
-    expect(response).toHaveProperty("raw", Buffer.from("TATAKAE"));
+    expect(response).toHaveProperty("body", Buffer.from("TATAKAE"));
   });
 });

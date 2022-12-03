@@ -4,7 +4,6 @@ import fs from "fs/promises";
 import { ObjectType } from "../../src/objects/object";
 import { ObjectStore } from "../../src/objects/store";
 import { exists } from "../../src/util/filesystem";
-import { decompress } from "../../src/util/compression";
 
 jest.mock("fs/promises");
 

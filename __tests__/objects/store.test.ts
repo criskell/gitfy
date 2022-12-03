@@ -16,16 +16,16 @@ describe("objects/store", () => {
     it("deve adicionar um objeto no repositório e retornar um identificador", async () => {
       await fs.mkdir("/.git/objects", { recursive: true });
 
-      const store = new ObjectStore("/.git/objects");  
+      const store = new ObjectStore("/.git/objects");
 
-      const blob = {
+      const id = await store.add({
         type: ObjectType.BLOB,
         content: Buffer.from("TATAKAE"),
-      };
+      });
 
-      const id = await store.add(blob);
-
-      const objectExists = await exists(`/.git/objects/${id.slice(0, 2)}/${id.slice(2)}`);
+      const objectExists = await exists(
+        `/.git/objects/${id.slice(0, 2)}/${id.slice(2)}`
+      );
 
       expect(id).toBeTruthy();
       expect(objectExists).toBe(true);
@@ -36,17 +36,18 @@ describe("objects/store", () => {
     it("deve retornar um objeto desencapsulado", async () => {
       await fs.mkdir("/.git/objects", { recursive: true });
 
-      const store = new ObjectStore("/.git/objects"); 
+      const store = new ObjectStore("/.git/objects");
 
-      const blob = {
+      const id = await store.add({
         type: ObjectType.BLOB,
         content: Buffer.from("TATAKAE"),
-      };
-
-      const id = await store.add(blob);
+      });
       const unwrapped = await store.get(id);
 
-      expect(unwrapped).toEqual(blob);
+      expect(unwrapped).toEqual({
+        type: ObjectType.BLOB,
+        content: Buffer.from("TATAKAE"),
+      });
     });
   });
 });

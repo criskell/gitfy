@@ -1,6 +1,6 @@
 import { ObjectType, ObjectId, generateObjectId } from "../objects/object";
 import { ObjectStore } from "../objects/store";
-import * as wrapper from "../objects/wrapper";
+import { serialize as serializeWrapper } from "../objects/wrapper";
 
 export interface HashObjectRequest {
   type: ObjectType;
@@ -18,7 +18,7 @@ export interface HashObjectResponse {
  */
 export const hashObject = (store?: ObjectStore) =>
   async (request: HashObjectRequest): Promise<HashObjectResponse> => {
-  const wrapped = wrapper.serialize({
+  const wrapped = serializeWrapper({
     type: request.type,
     body: request.body,
   });

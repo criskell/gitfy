@@ -17,7 +17,7 @@ export const isTree = (body: ObjectBody): body is Tree =>
 
 export class BodySerializer {
   public static serialize(body: ObjectBody): Buffer {
-    if (isBlob(body) || isCommit(body) || isTree(body)) return body.serialize();
+    return body.serialize();
   }
 
   public static deserializeFromWrapper(wrapper: Wrapper): ObjectBody {

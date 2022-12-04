@@ -1,6 +1,5 @@
 import { ObjectType, ObjectId } from "../objects/object";
 import { ObjectStore } from "../objects/store";
-import { deserialize as deserializeWrapper } from "../objects/wrapper";
 import { Commit } from "../objects/commit";
 
 export interface LogRequest {
@@ -13,16 +12,16 @@ export interface LogResponse {
 
 export const log = (store: ObjectStore) =>
   async (request: LogRequest): Promise<LogResponse> => {
-  const commit = await store.get(request.commitId);
+  const commit = await store.get(request.commitId) as Commit;
 
   let log = "digraph {";
 
-  const commits = [[request.commitId, commit]];
+  const commits = [[request.commitId, commit] as const];
 
   for await (const [id, commit] of commits) {
     for await (const parentId of commit.parentIds) {
       log += `${id.slice(0, 6)}->${parentId.slice(0, 6)}`;
-      commits.push([parentId, await store.get(parentId)]);
+      commits.push([parentId, await store.get(parentId) as Commit]);
     }
   }
 

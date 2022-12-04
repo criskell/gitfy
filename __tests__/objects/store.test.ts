@@ -1,27 +1,27 @@
 import { vol } from "memfs";
 import fs from "fs/promises";
 
-import { ObjectType } from "../../src/objects/object";
 import { ObjectStore } from "../../src/objects/store";
+import { Blob } from "../../src/objects/blob";
 import { exists } from "../../src/util/filesystem";
 
 jest.mock("fs/promises");
 
 describe("objects/store", () => {
-  beforeEach(() => {
+  let store;
+
+  const blob = new Blob();
+  blob.content = Buffer.from("TATAKAE");
+
+  beforeEach(async () => {
     vol.reset();
+    await fs.mkdir("/.git/objects", { recursive: true });
+    store = new ObjectStore("/.git/objects");
   });
 
   describe("add()", () => {
     it("deve adicionar um objeto no repositório e retornar um identificador", async () => {
-      await fs.mkdir("/.git/objects", { recursive: true });
-
-      const store = new ObjectStore("/.git/objects");
-
-      const id = await store.add({
-        type: ObjectType.BLOB,
-        content: Buffer.from("TATAKAE"),
-      });
+      const id = await store.add(blob);
 
       const objectExists = await exists(
         `/.git/objects/${id.slice(0, 2)}/${id.slice(2)}`
@@ -33,21 +33,11 @@ describe("objects/store", () => {
   });
 
   describe("get()", () => {
-    it("deve retornar um objeto desencapsulado", async () => {
-      await fs.mkdir("/.git/objects", { recursive: true });
+    it("deve retornar um objeto desserializado", async () => {
+      const id = await store.add(blob);
+      const object = await store.get(id);
 
-      const store = new ObjectStore("/.git/objects");
-
-      const id = await store.add({
-        type: ObjectType.BLOB,
-        content: Buffer.from("TATAKAE"),
-      });
-      const unwrapped = await store.get(id);
-
-      expect(unwrapped).toEqual({
-        type: ObjectType.BLOB,
-        content: Buffer.from("TATAKAE"),
-      });
+      expect(object).toEqual(blob);
     });
   });
 });

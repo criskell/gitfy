@@ -1,62 +1,59 @@
 import { ObjectType } from "./object";
+import { Message } from "./message";
 
-import {
-  serialize as serializeMessage,
-  deserialize as deserializeMessage,
-} from "./message";
+export class Commit {
+  public readonly type = ObjectType.COMMIT;
+  
+  public treeId: string;
+  public parentIds: string[] = [];
+  public author: string;
+  public committer: string;
+  public gpgSignature?: string;
+  public message: string;
 
-export interface Commit {
-  type: ObjectType.COMMIT;
-  treeId: string;
-  parentIds: string[];
-  author: string;
-  committer: string;
-  gpgSignature?: string;
-  message: string;
+  public static from(raw: Buffer): Commit | null {
+    const { headers, body } = Message.from(raw.toString());
+
+    if (
+      !(
+        headers.has("tree") &&
+        headers.has("author") &&
+        headers.has("committer")
+      )
+    ) return null;
+
+    const commit = new Commit;
+
+    commit.treeId = headers.get("tree");
+    commit.parentIds = headers.has("parent") ? headers.get("parent").split(" ") : [];
+    commit.author = headers.get("author");
+    commit.committer = headers.get("committer");
+    commit.gpgSignature = headers.get("gpgsig");
+    commit.message = body;
+
+    return commit;
+  }
+
+  public serialize () {
+    const headers = new Map();
+
+    headers.set("tree", this.treeId);
+    headers.set("author", this.author);
+    headers.set("committer", this.committer);
+
+    if (this.parentIds.length) {
+      headers.set("parent", this.parentIds.join(" "));
+    }
+
+    if (this.gpgSignature) {
+      headers.set("gpgsig", this.gpgSignature);
+    }
+
+    const message = new Message();
+
+    message.headers = headers;
+    message.body = this.message;
+
+    return Buffer.from(message.serialize());
+  }
 }
-
-export const serialize = (commit: Commit): Buffer => {
-  const headers = new Map([
-    ["tree", commit.treeId],
-    ["author", commit.author],
-    ["committer", commit.committer],
-  ]);
-
-  if (commit.parentIds.length) {
-    headers.set("parent", commit.parentIds.join(" "));
-  }
-
-  if (commit.gpgSignature) {
-    headers.set("gpgsig", commit.gpgSignature);
-  }
-
-  return Buffer.from(
-    serializeMessage({
-      headers,
-      body: commit.message,
-    })
-  );
-};
-
-export const deserialize = (raw: Buffer): Commit | null => {
-  const { headers, body } = deserializeMessage(raw.toString());
-
-  if (
-    !(
-      headers.has("tree") &&
-      headers.has("author") &&
-      headers.has("committer")
-    )
-  )
-    return null;
-
-  return {
-    type: ObjectType.COMMIT,
-    treeId: headers.get("tree"),
-    parentIds: (headers.get("parent") || "").split(" ").filter((x) => x),
-    author: headers.get("author"),
-    committer: headers.get("committer"),
-    gpgSignature: headers.get("gpgsig"),
-    message: body,
-  };
-};

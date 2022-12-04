@@ -1,35 +1,32 @@
-interface Message {
-  headers: Map<string, string>;
-  body: string;
-}
+export class Message {
+  public headers: Map<string, string> = new Map();
+  public body: string = "";
 
-export const serialize = (message: Message): string => {
-  return Array.from(message.headers).map(([key, value]) => {
-    const serializedValue = value.replaceAll("\n", "\n ");
+  public static from(raw: string): Message {
+    const lines = raw.split(/\n(?! )/);
 
-    return `${key} ${serializedValue}`;
-  }).join("\n") + "\n\n" + message.body;
-};
+    const message = new Message;
 
-export const deserialize = (serialized: string): Message => {
-  const lines = serialized.split(/\n(?! )/);
+    let currentLine;
 
-  const message: Message = {
-    headers: new Map(),
-    body: "",
-  };
+    while ((currentLine = lines.shift()) !== "") {
+      const spaceIndex = currentLine.indexOf(" ");
+      const key = currentLine.slice(0, spaceIndex);
+      const value = currentLine.slice(spaceIndex + 1).replaceAll("\n ", "\n");
 
-  let currentLine;
+      message.headers.set(key, value);
+    }
 
-  while ((currentLine = lines.shift()) !== "") {
-    const spaceIndex = currentLine.indexOf(" ");
-    const key = currentLine.slice(0, spaceIndex);
-    const value = currentLine.slice(spaceIndex + 1).replaceAll("\n ", "\n");
+    message.body = lines.join("\n");
 
-    message.headers.set(key, value);
+    return message;
   }
 
-  message.body = lines.join("\n");
+  public serialize(): string {
+    return Array.from(this.headers).map(([key, value]) => {
+      const serializedValue = value.replaceAll("\n", "\n ");
 
-  return message;
-};
+      return `${key} ${serializedValue}`;
+    }).join("\n") + "\n\n" + this.body;
+  }
+}

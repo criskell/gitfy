@@ -1,17 +1,18 @@
 import { ObjectType } from "./object";
 
-export interface Blob {
-  type: ObjectType.BLOB;
-  content: Buffer;
-};
+export class Blob {
+  public readonly type = ObjectType.BLOB;
+  public content: Buffer;
 
-export const serialize = (blob: Blob): Buffer => {
-  return blob.content;
-};
+  public static from(raw: Buffer): Blob {
+    const blob = new Blob();
+    
+    blob.content = raw;
+    
+    return blob;
+  }
 
-export const deserialize = (content: Buffer): Blob => {
-  return {
-    type: ObjectType.BLOB,
-    content,
-  };
-};
+  public serialize(): Buffer {
+    return this.content;
+  }
+}

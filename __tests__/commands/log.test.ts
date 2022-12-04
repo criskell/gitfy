@@ -3,6 +3,7 @@ import fs from "fs/promises";
 
 import { ObjectType, generateObjectId } from "../../src/objects/object";
 import { ObjectStore } from "../../src/objects/store";
+import { Commit } from "../../src/objects/commit";
 import { log } from "../../src/commands/log";
 
 jest.mock("fs/promises");
@@ -14,29 +15,30 @@ describe("commands/log", () => {
 
   it("deve mostrar um log de commits", async () => {
     await fs.mkdir("/.git/objects", { recursive: true });
-
     const store = new ObjectStore("/.git/objects");
 
-    const firstCommit = await store.add({
-      type: ObjectType.COMMIT,
-      parentIds: [],
-      treeId: generateObjectId("exampletreeid" as any),
-      author: "foo",
-      committer: "foo",
-      message: "TATAKAE",
-    });
+    const firstCommit = new Commit();
 
-    const secondCommit = await store.add({
-      type: ObjectType.COMMIT,
-      parentIds: [firstCommit],
-      treeId: generateObjectId("exampletreeid" as any),
-      author: "foo",
-      committer: "foo",
-      message: "FOO",
-    });
+    firstCommit.parentIds = [];
+    firstCommit.treeId = generateObjectId(Buffer.from("exampletreeid"));
+    firstCommit.author = "foo";
+    firstCommit.committer = "foo";
+    firstCommit.message = "first commit";
 
-    const response = await log(store)({ commitId: secondCommit });
+    const firstCommitId = await store.add(firstCommit);
 
-    expect(response.log).toBe(`digraph {${secondCommit.slice(0, 6)}->${firstCommit.slice(0, 6)}}`);
+    const secondCommit = new Commit();
+
+    secondCommit.parentIds = [firstCommitId];
+    secondCommit.treeId = generateObjectId(Buffer.from("exampletreeid"));
+    secondCommit.author = "foo";
+    secondCommit.committer = "foo";
+    secondCommit.message = "second commit";
+
+    const secondCommitId = await store.add(secondCommit);
+
+    const response = await log(store)({ commitId: secondCommitId });
+
+    expect(response.log).toBe(`digraph {${secondCommitId.slice(0, 6)}->${firstCommitId.slice(0, 6)}}`);
   });
 });

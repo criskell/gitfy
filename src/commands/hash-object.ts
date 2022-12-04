@@ -1,6 +1,6 @@
 import { ObjectType, ObjectId, generateObjectId } from "../objects/object";
 import { ObjectStore } from "../objects/store";
-import { serialize as serializeWrapper } from "../objects/wrapper";
+import { Wrapper } from "../objects/wrapper";
 
 export interface HashObjectRequest {
   type: ObjectType;
@@ -18,14 +18,17 @@ export interface HashObjectResponse {
  */
 export const hashObject = (store?: ObjectStore) =>
   async (request: HashObjectRequest): Promise<HashObjectResponse> => {
-  const wrapped = serializeWrapper({
-    type: request.type,
-    body: request.body,
-  });
-  const id = generateObjectId(wrapped);
+  const wrapper = new Wrapper();
+
+  wrapper.type = request.type;
+  wrapper.body = request.body;
+
+  const serializedWrapper = wrapper.serialize();
+
+  const id = generateObjectId(serializedWrapper);
 
   if (request.write) {
-    await store.writeRaw(id, wrapped);
+    await store.writeRaw(id, serializedWrapper);
   }
 
   return { id };

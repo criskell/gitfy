@@ -1,6 +1,6 @@
 import { ObjectType, ObjectId } from "../objects/object";
 import { ObjectStore } from "../objects/store";
-import { deserialize as deserializeWrapper } from "../objects/wrapper";
+import { Wrapper } from "../objects/wrapper";
 
 export interface CatFileRequest {
   objectId: ObjectId;
@@ -21,7 +21,7 @@ export const catFile = (store: ObjectStore) =>
 
   if (! raw) return { body: null };
 
-  const { body } = await deserializeWrapper(raw);
+  const { body } = Wrapper.from(raw);
 
   return { body };
 };

@@ -1,18 +1,15 @@
 import { vol } from "memfs";
 import fs from "fs/promises";
 
-import { ObjectType } from "../../src/objects/object";
+import { GitObject, ObjectType } from "../../src/objects";
 import { ObjectStore } from "../../src/objects/store";
-import { Blob } from "../../src/objects/blob";
+import { Blob } from "../../src/objects/body/blob";
 import { catFile } from "../../src/commands/cat-file";
 
 jest.mock("fs/promises");
 
 describe("commands/cat-file", () => {
   let store;
-
-  const blob = new Blob();
-  blob.content = Buffer.from("TATAKAE");
 
   beforeEach(async () => {
     vol.reset();
@@ -21,11 +18,11 @@ describe("commands/cat-file", () => {
   });
 
   it("deve obter a versão crua de um objeto blob", async () => {
-    const id = await store.add(blob);
+    const object = await store.add(GitObject.from(new Blob(Buffer.from("TATAKAE"))));
 
     const response = await catFile(store)({
       type: ObjectType.BLOB,
-      objectId: id,
+      objectId: object.id,
     });
 
     expect(response).toHaveProperty("body", Buffer.from("TATAKAE"));

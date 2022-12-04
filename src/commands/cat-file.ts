@@ -1,6 +1,5 @@
-import { ObjectType, ObjectId } from "../objects/object";
+import { ObjectType, ObjectId } from "../objects";
 import { ObjectStore } from "../objects/store";
-import { Wrapper } from "../objects/wrapper";
 
 export interface CatFileRequest {
   objectId: ObjectId;
@@ -17,11 +16,9 @@ export interface CatFileResponse {
  */
 export const catFile = (store: ObjectStore) =>
   async (request: CatFileRequest): Promise<CatFileResponse> => {
-  const raw = await store.readRaw(request.objectId);
+  const object = await store.get(request.objectId);
 
-  if (! raw) return { body: null };
-
-  const { body } = Wrapper.from(raw);
+  const { body } = object.wrapper();
 
   return { body };
 };

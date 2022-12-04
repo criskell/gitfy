@@ -1,4 +1,4 @@
-import { ObjectType, ObjectId, generateObjectId } from "../objects/object";
+import { GitObject, ObjectType, ObjectId, generateObjectId } from "../objects";
 import { ObjectStore } from "../objects/store";
 import { Wrapper } from "../objects/wrapper";
 
@@ -18,18 +18,13 @@ export interface HashObjectResponse {
  */
 export const hashObject = (store?: ObjectStore) =>
   async (request: HashObjectRequest): Promise<HashObjectResponse> => {
-  const wrapper = new Wrapper();
-
-  wrapper.type = request.type;
-  wrapper.body = request.body;
-
-  const serializedWrapper = wrapper.serialize();
-
-  const id = generateObjectId(serializedWrapper);
+  const object = GitObject.from(new Wrapper(request.type, request.body));
 
   if (request.write) {
-    await store.writeRaw(id, serializedWrapper);
+    await store.add(object);
   }
 
-  return { id };
+  return {
+    id: object.id,
+  };
 };

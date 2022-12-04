@@ -1,4 +1,4 @@
-import { Message } from "../../src/objects/message";
+import { Message } from "../../src/objects/body/message";
 
 describe("objects/message", () => {
   describe("deserialize()", () => {

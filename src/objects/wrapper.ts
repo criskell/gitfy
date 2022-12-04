@@ -1,9 +1,6 @@
-import { ObjectType, isObjectType } from "./object";
+import { ObjectType, isObjectType } from ".";
 
 export class Wrapper {
-  public type: ObjectType;
-  public body: Buffer;
-
   public static from(raw: Buffer): Wrapper {
     const spaceIndex = raw.indexOf(0x20);
     const type = raw.toString("ascii", 0, spaceIndex);
@@ -17,12 +14,16 @@ export class Wrapper {
 
     const body = raw.subarray(nullIndex + 1, nullIndex + size + 1);
 
-    const wrapper = new Wrapper();
-
-    wrapper.type = type;
-    wrapper.body = body;
+    const wrapper = new Wrapper(type, body);
 
     return wrapper;
+  }
+
+  public constructor(
+    public type: ObjectType,
+    public body: Buffer
+  ) {
+    //
   }
 
   public serialize() {

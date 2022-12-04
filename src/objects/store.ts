@@ -1,15 +1,6 @@
 import fs from "fs/promises";
 
-import {
-  GitObject,
-  ObjectId,
-  generateObjectId,
-  ObjectType
-} from "./object";
-import { Wrapper } from "./wrapper";
-import { Commit } from "./commit";
-import { Blob } from "./blob";
-import { Tree } from "./tree";
+import { GitObject, ObjectId } from ".";
 import { compress, decompress } from "../util/compression";
 
 export class ObjectStore {
@@ -17,67 +8,30 @@ export class ObjectStore {
     //
   }
 
-  public async get(id: ObjectId): Promise<GitObject> {
-    const serializedWrapper = await this.readRaw(id);
-
-    if (! serializedWrapper) return null;
-
-    const wrapper = Wrapper.from(serializedWrapper);
-
-    if (wrapper.type === ObjectType.COMMIT) {
-      return Commit.from(wrapper.body);
-    }
-
-    if (wrapper.type === ObjectType.BLOB) {
-      return Blob.from(wrapper.body);
-    }
-
-    if (wrapper.type === ObjectType.TREE) {
-      return Tree.from(wrapper.body);
-    }
-  }
-
-  public async add (object: GitObject): Promise<string> {
-    const wrapper = new Wrapper();
-
-    wrapper.type = object.type;
-
-    if (object.type === ObjectType.BLOB
-      || object.type === ObjectType.COMMIT
-      || object.type === ObjectType.TREE) {
-      wrapper.body = object.serialize();
-    }
-
-    const serializedWrapper = wrapper.serialize();
-
-    const objectId = generateObjectId(serializedWrapper);
-
-    await this.writeRaw(objectId, serializedWrapper);
-
-    return objectId;
-  }
-
-  public async writeRaw (objectId: ObjectId, raw: Buffer) {
-    const directory = `${this.path}/${objectId.slice(0, 2)}`;
-    const savePath = `${directory}/${objectId.slice(2)}`;
-
-    const compressed = await compress(raw);
-
-    await fs.mkdir(directory, { recursive: true });
-    await fs.writeFile(savePath, compressed);
-  }
-
-  public async readRaw (objectId: ObjectId): Promise<Buffer | null> {
+  public async get(objectId: ObjectId): Promise<GitObject> {
     const objectPath = `${this.path}/${objectId.slice(0, 2)}/${objectId.slice(2)}`;
 
     try {
-      const compressed = await fs.readFile(objectPath);
-      const raw = await decompress(compressed);
+      const compressedEntry = await fs.readFile(objectPath);
+      const entry = await decompress(compressedEntry);
+      const object = new GitObject(entry, objectId);
 
-      return raw;
+      return object;
     } catch (e) {
       if (e.code === "ENOTENT") return null;
       throw e;
     }
+  }
+
+  public async add (object: GitObject): Promise<GitObject> {
+    const directory = `${this.path}/${object.id.slice(0, 2)}`;
+    const savePath = `${directory}/${object.id.slice(2)}`;
+
+    const compressedEntry = await compress(object.content);
+
+    await fs.mkdir(directory, { recursive: true });
+    await fs.writeFile(savePath, compressedEntry);
+
+    return object;
   }
 }

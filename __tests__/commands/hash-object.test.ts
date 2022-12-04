@@ -1,7 +1,7 @@
 import { vol } from "memfs";
 import fs from "fs/promises";
 
-import { ObjectType } from "../../src/objects/object";
+import { ObjectType } from "../../src/objects";
 import { hashObject } from "../../src/commands/hash-object";
 
 jest.mock("fs/promises");

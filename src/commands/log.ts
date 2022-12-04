@@ -12,7 +12,7 @@ export interface LogResponse {
 
 export const log = (store: ObjectStore) =>
   async (request: LogRequest): Promise<LogResponse> => {
-  const commit = await store.get(request.commitId) as Commit;
+  const commit: Commit = await store.get(request.commitId);
 
   let log = "digraph {";
 

@@ -16,6 +16,8 @@ export class ObjectStore {
     //
   }
 
+  public async get(id: ObjectId): Promise<Commit>;
+  public async get(id: ObjectId): Promise<Blob>;
   public async get(id: ObjectId): Promise<GitObject> {
     const serializedWrapper = await this.readRaw(id);
 

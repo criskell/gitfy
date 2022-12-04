@@ -9,6 +9,7 @@ import {
 import { Wrapper } from "./wrapper";
 import { Commit } from "./commit";
 import { Blob } from "./blob";
+import { Tree } from "./tree";
 import { compress, decompress } from "../util/compression";
 
 export class ObjectStore {
@@ -16,8 +17,6 @@ export class ObjectStore {
     //
   }
 
-  public async get(id: ObjectId): Promise<Commit>;
-  public async get(id: ObjectId): Promise<Blob>;
   public async get(id: ObjectId): Promise<GitObject> {
     const serializedWrapper = await this.readRaw(id);
 
@@ -32,6 +31,10 @@ export class ObjectStore {
     if (wrapper.type === ObjectType.BLOB) {
       return Blob.from(wrapper.body);
     }
+
+    if (wrapper.type === ObjectType.TREE) {
+      return Tree.from(wrapper.body);
+    }
   }
 
   public async add (object: GitObject): Promise<string> {
@@ -39,7 +42,9 @@ export class ObjectStore {
 
     wrapper.type = object.type;
 
-    if (object.type === ObjectType.BLOB || object.type === ObjectType.COMMIT) {
+    if (object.type === ObjectType.BLOB
+      || object.type === ObjectType.COMMIT
+      || object.type === ObjectType.TREE) {
       wrapper.body = object.serialize();
     }
 

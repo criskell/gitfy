@@ -1,3 +1,6 @@
+import { ufs } from "unionfs";
 import { fs } from "memfs";
 
-export default fs;
+ufs.use(fs as any);
+
+export default ufs;

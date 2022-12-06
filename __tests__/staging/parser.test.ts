@@ -9,7 +9,6 @@ describe("index/parser", () => {
     const rawIndex = await fs.readFile(nodePath.join(__dirname, "..", "..", "__fixtures__", "index"));
     const index = parseIndex(rawIndex);
 
-    expect(index).toHaveProperty("entries.length", 3);
-    expect(index).toHaveProperty("checksum", "f302f165b396cfb52a5542eeb7f94804744d2220");
+    expect(index.entries.length).toBe(3);
   });
 });

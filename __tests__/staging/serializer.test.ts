@@ -10,7 +10,11 @@ describe("index/serializer", () => {
   it("deve serializar um objeto de índice", async () => {
     const rawIndex = await fs.readFile(nodePath.join(__dirname, "..", "..", "__fixtures__", "index"));
     const index = parseIndex(rawIndex);
-    const serialized = serializeIndex(index);
+    const serialized = serializeIndex({
+      version: 2,
+      entries: index.entries,
+      rawExtensions: index.rawExtensions,
+    });
 
     expect(serialized).toEqual(rawIndex);
   });

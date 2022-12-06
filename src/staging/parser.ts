@@ -1,13 +1,6 @@
 import { IndexEntry } from "./entry";
-import { Index } from ".";
 
-export interface Header {
-  signature: Buffer;
-  version: number;
-  numberOfEntries: number;
-}
-
-export const parseHeader = (raw: Buffer): Header => {
+export const parseHeader = (raw: Buffer) => {
   const signature = raw.subarray(0, 4);
   const version = raw.readUInt32BE(4);
   const numberOfEntries = raw.readUInt32BE(8);
@@ -19,7 +12,7 @@ export const parseHeader = (raw: Buffer): Header => {
   };
 };
 
-export const parseFlags = (rawFlags) => {
+export const parseFlags = (rawFlags: number) => {
   return {
     assumeValid: Boolean(rawFlags >>> 15),
     extendedFlag: Boolean(rawFlags >>> 14 & 1),
@@ -28,10 +21,13 @@ export const parseFlags = (rawFlags) => {
   };
 };
 
-export const parseEntries = (data: Buffer, numberOfEntries: number): [entries: IndexEntry[], rawEntriesLength: number] => {
+export const parseEntries = (data: Buffer, startAt: number): {
+  entries: IndexEntry[],
+  cursor: number
+} => {
   const entries: IndexEntry[] = [];
 
-  let cursor = 0;
+  let cursor = startAt;
 
   while (cursor + 62 < data.length) {
     const ctimeInSeconds = data.readUInt32BE(cursor);
@@ -83,14 +79,24 @@ export const parseEntries = (data: Buffer, numberOfEntries: number): [entries: I
     cursor += totalLength;
   }
 
-  return [entries, cursor];
+  return { entries, cursor };
 };
 
-export const parseIndex = (rawIndex: Buffer): Index => {
-  const header = parseHeader(rawIndex.subarray(0, 12));
-  const [entries, rawEntriesLength] = parseEntries(rawIndex.subarray(12, -20), header.numberOfEntries);
-  const checksum = rawIndex.subarray(-20).toString("hex");
-  const rawExtensions = rawIndex.subarray(12 + rawEntriesLength, -20);
+export const parseIndex = (rawIndex: Buffer): {
+  header: ReturnType<typeof parseHeader>,
+  entries: ReturnType<typeof parseEntries>["entries"],
+  rawExtensions: Buffer,
+  checksum: Buffer,
+} => {
+  const header = parseHeader(rawIndex);
+  const { entries, cursor } = parseEntries(rawIndex, 12);
+  const rawExtensions = rawIndex.subarray(cursor, -20);
+  const checksum = rawIndex.subarray(-20);
 
-  return new Index(entries, header.version, checksum, rawExtensions);
+  return {
+    header,
+    entries,
+    rawExtensions,
+    checksum,
+  };
 };

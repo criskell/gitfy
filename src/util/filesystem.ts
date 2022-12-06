@@ -24,3 +24,16 @@ export const createTree = async (tree: Tree, baseDirectory?: string) => {
 
 export const exists = async (path: string): Promise<boolean> =>
   !!(await fs.stat(path).catch(error => false));
+
+export const listFiles = (directory: string) =>
+  fs.readdir(directory, { withFileTypes: true })
+    .then((entries) =>
+      Promise.all(
+        entries.map(
+          (entry) => entry.isFile()
+            ? nodePath.join(directory, entry.name)
+            : listFiles(nodePath.join(directory, entry.name))
+        )
+      )
+    )
+    .then((entries) => entries.flat(Infinity));

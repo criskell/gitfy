@@ -1,3 +1,35 @@
+import fs from "fs/promises";
+
+type IndexEntryProps = { [prop in keyof IndexEntry]: IndexEntry[prop] };
+
+export const createIndexEntry = async (path: string, objectId: string): Promise<IndexEntry> => {
+  const stats = await fs.lstat(path, { bigint: true });
+
+  const entry: IndexEntryProps = {
+    objectId,
+    file: {
+      mode: Number(stats.mode),
+      path,
+      size: Number(stats.size),
+      inodeNumber: Number(stats.ino),
+      device: Number(stats.dev),
+    },
+    timestamps: {
+      metadataChanged: [Number(stats.ctimeMs) % 2 ** 32, Number(stats.ctimeNs) % 2 ** 32],
+      dataChanged: [Number(stats.mtimeMs) % 2 ** 32, Number(stats.mtimeNs) % 2 ** 32],
+    },
+    flags: {
+      assumeValid: false,
+      extendedFlag: false,
+    },
+    stage: 0,
+    groupId: Number(stats.gid),
+    userId: Number(stats.uid),
+  };
+
+  return new IndexEntry(entry);
+};
+
 export class IndexEntry {
   public objectId: string;
 
@@ -24,7 +56,7 @@ export class IndexEntry {
   public userId: number;
   public groupId: number;
 
-  constructor({ file, timestamps, userId, groupId, stage, flags }: { [prop in keyof IndexEntry]: IndexEntry[prop] }) {
+  constructor({ objectId, file, timestamps, userId, groupId, stage, flags }: IndexEntryProps) {
     this.objectId = objectId;
     this.file = file;
     this.timestamps = timestamps;

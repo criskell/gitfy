@@ -6,6 +6,12 @@ import { Wrapper } from "../wrapper";
 
 export type ObjectBody = Commit | Blob | Tree;
 
+export {
+  Commit,
+  Blob,
+  Tree
+};
+
 export const isBlob = (body: ObjectBody): body is Blob =>
   body.type === ObjectType.BLOB;
 

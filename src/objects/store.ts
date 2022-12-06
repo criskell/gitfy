@@ -4,9 +4,7 @@ import { GitObject, ObjectId } from ".";
 import { compress, decompress } from "../util/compression";
 
 export class ObjectStore {
-  constructor (public path: string) {
-    //
-  }
+  constructor (public path: string) {}
 
   public async get(objectId: ObjectId): Promise<GitObject> {
     const objectPath = `${this.path}/${objectId.slice(0, 2)}/${objectId.slice(2)}`;

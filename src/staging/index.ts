@@ -3,6 +3,9 @@ import { IndexEntry } from "./entry";
 import { parseIndex } from "./parser";
 import { serializeIndex } from "./serializer";
 
+export * from "./entry";
+export { IndexStore } from "./store";
+
 export class Index {
   public static from(rawIndex: Buffer) {
     const { entries, rawExtensions } = parseIndex(rawIndex);
@@ -10,12 +13,16 @@ export class Index {
     return new Index(entries, rawExtensions);
   }
 
-  public constructor(private unsortedEntries: IndexEntry[], public rawExtensions?: Buffer) {
+  public constructor(private unsortedEntries: IndexEntry[] = [], public rawExtensions?: Buffer) {
     //
   }
 
+  public add(entry: IndexEntry) {
+    this.unsortedEntries.push(entry);
+  }
+
   public entries() {
-    return this.unsortedEntries.sort((a, b) => (a.path > b.path) - (a.path < b.path));
+    return this.unsortedEntries.sort((a, b) => Number(a.file.path > b.file.path) - Number(a.file.path < b.file.path));
   }
 
   public serialize(): Buffer {

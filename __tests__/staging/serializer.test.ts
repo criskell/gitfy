@@ -12,9 +12,6 @@ describe("index/serializer", () => {
     const index = parseIndex(rawIndex);
     const serialized = serializeIndex(index);
 
-    // Retorna somente os headers e as entries sem as extensões
-    const headerAndEntriesFromIndex = rawIndex.subarray(0, 0x000000E4);
-
-    expect(serialized.subarray(0, -20)).toEqual(headerAndEntriesFromIndex);
+    expect(serialized).toEqual(rawIndex);
   });
 });

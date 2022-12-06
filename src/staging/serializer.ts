@@ -50,8 +50,9 @@ export const serializeEntry = (entry: IndexEntry): Buffer => {
 export const serializeIndex = (index: Index): Buffer => {
   const header = serializeHeader(index);
   const entries = Buffer.concat(index.entries.map(serializeEntry));
+  const extensions = index.rawExtensions;
 
-  const content = Buffer.concat([header, entries]);
+  const content = Buffer.concat([header, entries, extensions]);
   const checksum = Buffer.from(sha1(content), "hex");
 
   return Buffer.concat([content, checksum]);

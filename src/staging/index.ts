@@ -11,7 +11,8 @@ export class Index {
   public constructor (
     public entries: IndexEntry[],
     public version: number,
-    public checksum: string
+    public checksum: string,
+    public rawExtensions: Buffer
   ) {
     //
   }

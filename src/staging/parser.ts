@@ -28,7 +28,7 @@ export const parseFlags = (rawFlags) => {
   };
 };
 
-export const parseEntries = (data: Buffer, numberOfEntries: number) => {
+export const parseEntries = (data: Buffer, numberOfEntries: number): [entries: IndexEntry[], rawEntriesLength: number] => {
   const entries: IndexEntry[] = [];
 
   let cursor = 0;
@@ -83,13 +83,14 @@ export const parseEntries = (data: Buffer, numberOfEntries: number) => {
     cursor += totalLength;
   }
 
-  return entries;
+  return [entries, cursor];
 };
 
 export const parseIndex = (rawIndex: Buffer): Index => {
   const header = parseHeader(rawIndex.subarray(0, 12));
-  const entries = parseEntries(rawIndex.subarray(12, -20), header.numberOfEntries);
+  const [entries, rawEntriesLength] = parseEntries(rawIndex.subarray(12, -20), header.numberOfEntries);
   const checksum = rawIndex.subarray(-20).toString("hex");
+  const rawExtensions = rawIndex.subarray(12 + rawEntriesLength, -20);
 
-  return new Index(entries, header.version, checksum);
+  return new Index(entries, header.version, checksum, rawExtensions);
 };

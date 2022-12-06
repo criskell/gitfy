@@ -8,7 +8,7 @@ export interface Header {
 }
 
 export const parseHeader = (raw: Buffer): Header => {
-  const signature = raw.subarray();
+  const signature = raw.subarray(0, 4);
   const version = raw.readUInt32BE(4);
   const numberOfEntries = raw.readUInt32BE(8);
 

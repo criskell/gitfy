@@ -1,6 +1,7 @@
 import { IndexEntry } from "./entry";
 
 import { parseIndex } from "./parser";
+import { serializeIndex } from "./serializer";
 
 export class Index {
   public static from(rawIndex: Buffer) {
@@ -13,5 +14,9 @@ export class Index {
     public checksum: string
   ) {
     //
-  } 
+  }
+
+  public serialize () {
+    return serializeIndex(this);
+  }
 }

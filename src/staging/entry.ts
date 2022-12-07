@@ -3,6 +3,13 @@ import nodePath from "path";
 
 type IndexEntryProps = { [prop in keyof IndexEntry]: IndexEntry[prop] };
 
+const convertStatsTimestamp = (millisecondsBigInt: bigint, nanosecondsBigInt: bigint): [number, number] => {
+  const seconds = Math.floor(Number(BigInt.asUintN(32, millisecondsBigInt || 0n)) / 1000);
+  const nanoseconds = Number(BigInt.asUintN(32, nanosecondsBigInt || 0n));
+
+  return [seconds, nanoseconds];
+};
+
 export const createIndexEntry = async (rootDirectory: string, relativePath: string, objectId: string): Promise<IndexEntry> => {
   const stats = await fs.lstat(nodePath.join(rootDirectory, relativePath), { bigint: true });
 
@@ -16,8 +23,8 @@ export const createIndexEntry = async (rootDirectory: string, relativePath: stri
       device: Number(stats.dev),
     },
     timestamps: {
-      metadataChanged: [Number(stats.ctimeMs) % 2 ** 32, Number(stats.ctimeNs) % 2 ** 32],
-      dataChanged: [Number(stats.mtimeMs) % 2 ** 32, Number(stats.mtimeNs) % 2 ** 32],
+      metadataChanged: convertStatsTimestamp(stats.ctimeMs, stats.ctimeNs),
+      dataChanged: convertStatsTimestamp(stats.mtimeMs, stats.mtimeNs),
     },
     flags: {
       assumeValid: false,

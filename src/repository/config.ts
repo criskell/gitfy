@@ -17,9 +17,12 @@ export const DEFAULT_CONFIG: ConfigSchema = {
   },
 };
 
+export const encode = ini.encode;
+export const decode = ini.decode;
+
 export class Config {
   public static async load(path: string): Promise<Config> {
-    const decoded = decode(await fs.readFile(path, 'utf8'));
+    const decoded = ini.decode(await fs.readFile(path, 'utf8'));
 
     decoded.core ??= {};
     decoded.core.repositoryformatversion ??= 0;

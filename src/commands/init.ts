@@ -1,7 +1,7 @@
 import nodePath from 'path';
 
 import { createTree } from '../util/filesystem';
-import { encode, DEFAULT_CONFIG } from '../config';
+import { encode, DEFAULT_CONFIG } from '../repository/config';
 
 interface InitRequest {
   /**

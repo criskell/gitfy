@@ -5,12 +5,14 @@ export class PathBuilder {
   private gitPath: string;
   private configPath: string;
   private objectsPath: string;
+  private indexPath: string;
 
   constructor(rootPath: string, isBare: boolean = false) {
     this.rootPath = rootPath;
     this.gitPath = isBare ? rootPath : `${rootPath}/.git`;
     this.configPath = nodePath.join(rootPath, 'config');
     this.objectsPath = nodePath.join(rootPath, 'objects');
+    this.indexPath = nodePath.join(rootPath, 'index');
   }
 
   public get root() {
@@ -29,7 +31,11 @@ export class PathBuilder {
     return this.objectsPath;
   }
 
+  public get index() {
+    return this.indexPath;
+  }
+
   public object(id: string) {
-    return nodePath.join(this.objectsPath, this.id);
+    return nodePath.join(this.objectsPath, id);
   }
 }

@@ -1,11 +1,9 @@
 import fs from 'fs/promises';
 import nodePath from 'path';
 
-import { exists } from '../util/filesystem';
-import { fetch as fetchConfig } from '../config';
-import { Repository } from '../repository';
+import { exists } from './filesystem';
 
-const findGitDirectory = async (path: string): Promise<string | null> => {
+export const findGitDirectory = async (path: string): Promise<string | null> => {
   const gitDirectory = nodePath.join(path, '.git');
 
   if (
@@ -24,17 +22,4 @@ const findGitDirectory = async (path: string): Promise<string | null> => {
   }
 
   return path === '/' ? null : findGitDirectory(nodePath.dirname(path));
-};
-
-export const loadRepository = async (
-  path?: string
-): Promise<Repository | null> => {
-  const gitDirectory = await findGitDirectory(path || process.cwd());
-
-  if (!gitDirectory) return null;
-
-  const config = await fetchConfig(nodePath.join(gitDirectory, 'config'));
-  const repo = new Repository(gitDirectory, config);
-
-  return repo;
 };

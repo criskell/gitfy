@@ -100,7 +100,7 @@ const snapshotFromEntries = (indexEntries: IndexEntry[]): Snapshot => {
 const createTreeObject = async (
   objects: ObjectStore,
   snapshotEntry: SnapshotDirectory
-): Promise<GitObject | null> => {
+): Promise<GitObject> => {
   const treeEntries = await Promise.all(
     snapshotEntry.children.map(async (snapshotEntry) => {
       const objectId = snapshotEntry.type === "file"

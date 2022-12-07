@@ -1,4 +1,5 @@
 import fs from "fs/promises";
+import nodePath from "path";
 
 import { setupFs } from "../support";
 import { exists, createTree, listFiles } from "../../src/util/filesystem";
@@ -24,9 +25,9 @@ describe("util/filesystem", () => {
 
       await createTree({
         "foo.txt": "bar",
-        "bar": {
-          "foo.txt": "baz"
-        }
+        bar: {
+          "foo.txt": "baz",
+        },
       });
 
       expect(await exists(`${cwd}/foo.txt`)).toBe(true);
@@ -37,29 +38,34 @@ describe("util/filesystem", () => {
 
   describe("listFiles()", () => {
     it("deve listar recursivamente os arquivos de um diretório", async () => {
-      await createTree({
-        "foo.txt": "a",
-        "b": {
-          "c": {
-            "d": "f",
-            "g": "h",
-            "y": "k",
-            "a": {
-              "b": "2"
-            }
-          }
-        }
-      }, "/diretorio");
+      await createTree(
+        {
+          "foo.txt": "a",
+          b: {
+            c: {
+              d: "f",
+              g: "h",
+              y: "k",
+              a: {
+                b: "2",
+              },
+            },
+          },
+        },
+        "/diretorio"
+      );
 
       const files = await listFiles("/diretorio");
 
-      expect(files).toEqual(expect.arrayContaining([
-        "/diretorio/foo.txt",
-        "/diretorio/b/c/d",
-        "/diretorio/b/c/g",
-        "/diretorio/b/c/y",
-        "/diretorio/b/c/a/b",
-      ]));
+      expect(files).toEqual(
+        expect.arrayContaining([
+          nodePath.join("/diretorio", "foo.txt"),
+          nodePath.join("/diretorio", "b", "c", "d"),
+          nodePath.join("/diretorio", "b", "c", "g"),
+          nodePath.join("/diretorio", "b", "c", "y"),
+          nodePath.join("/diretorio", "b", "c", "a", "b"),
+        ])
+      );
     });
   });
 });

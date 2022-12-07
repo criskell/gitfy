@@ -1,4 +1,4 @@
-import { IndexEntry } from "./entry";
+import { IndexEntry } from './entry';
 
 export const parseHeader = (raw: Buffer) => {
   const signature = raw.subarray(0, 4);
@@ -15,15 +15,18 @@ export const parseHeader = (raw: Buffer) => {
 export const parseFlags = (rawFlags: number) => {
   return {
     assumeValid: Boolean(rawFlags >>> 15),
-    extendedFlag: Boolean(rawFlags >>> 14 & 1),
-    stage: rawFlags >>> 12 & 0b0011,
+    extendedFlag: Boolean((rawFlags >>> 14) & 1),
+    stage: (rawFlags >>> 12) & 0b0011,
     pathLength: rawFlags & 0b0000000111111111,
   };
 };
 
-export const parseEntries = (data: Buffer, startAt: number): {
-  entries: IndexEntry[],
-  cursor: number
+export const parseEntries = (
+  data: Buffer,
+  startAt: number
+): {
+  entries: IndexEntry[];
+  cursor: number;
 } => {
   const entries: IndexEntry[] = [];
 
@@ -40,11 +43,13 @@ export const parseEntries = (data: Buffer, startAt: number): {
     const uid = data.readUInt32BE(cursor + 28);
     const gid = data.readUInt32BE(cursor + 32);
     const size = data.readUInt32BE(cursor + 36);
-    const objectId = data.subarray(cursor + 40, cursor + 60).toString("hex");
+    const objectId = data.subarray(cursor + 40, cursor + 60).toString('hex');
     const rawFlags = data.readUInt16BE(cursor + 60);
     const flags = parseFlags(rawFlags);
-    const path = data.subarray(cursor + 62, cursor + 62 + flags.pathLength).toString();
-    
+    const path = data
+      .subarray(cursor + 62, cursor + 62 + flags.pathLength)
+      .toString();
+
     entries.push({
       objectId,
 
@@ -73,7 +78,7 @@ export const parseEntries = (data: Buffer, startAt: number): {
     });
 
     const entryLength = 62 + flags.pathLength;
-    const paddingLength = 8 - entryLength % 8;
+    const paddingLength = 8 - (entryLength % 8);
     const totalLength = entryLength + paddingLength;
 
     cursor += totalLength;
@@ -82,11 +87,13 @@ export const parseEntries = (data: Buffer, startAt: number): {
   return { entries, cursor };
 };
 
-export const parseIndex = (rawIndex: Buffer): {
-  header: ReturnType<typeof parseHeader>,
-  entries: ReturnType<typeof parseEntries>["entries"],
-  rawExtensions: Buffer,
-  checksum: Buffer,
+export const parseIndex = (
+  rawIndex: Buffer
+): {
+  header: ReturnType<typeof parseHeader>;
+  entries: ReturnType<typeof parseEntries>['entries'];
+  rawExtensions: Buffer;
+  checksum: Buffer;
 } => {
   const header = parseHeader(rawIndex);
   const { entries, cursor } = parseEntries(rawIndex, 12);

@@ -1,5 +1,5 @@
-import fs from "fs/promises";
-import nodePath from "path";
+import fs from 'fs/promises';
+import nodePath from 'path';
 
 type IndexEntryProps = { [prop in keyof IndexEntry]: IndexEntry[prop] };
 
@@ -28,7 +28,7 @@ export const createIndexEntry = async (
     objectId,
     file: {
       mode: Number(stats.mode),
-      path: relativePath.replaceAll(nodePath.sep, "/"),
+      path: relativePath.replaceAll(nodePath.sep, '/'),
       size: Number(stats.size),
       inodeNumber: Number(stats.ino),
       device: Number(stats.dev),

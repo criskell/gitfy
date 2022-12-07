@@ -1,16 +1,12 @@
-import { ObjectType } from "..";
-import { Commit } from "./commit";
-import { Blob } from "./blob";
-import { Tree } from "./tree";
-import { Wrapper } from "../wrapper";
+import { ObjectType } from '..';
+import { Commit } from './commit';
+import { Blob } from './blob';
+import { Tree } from './tree';
+import { Wrapper } from '../wrapper';
 
 export type ObjectBody = Commit | Blob | Tree;
 
-export {
-  Commit,
-  Blob,
-  Tree
-};
+export { Commit, Blob, Tree };
 
 export const isBlob = (body: ObjectBody): body is Blob =>
   body.type === ObjectType.BLOB;

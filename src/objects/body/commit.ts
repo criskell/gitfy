@@ -1,5 +1,5 @@
-import { ObjectType } from "..";
-import { Message } from "./message";
+import { ObjectType } from '..';
+import { Message } from './message';
 
 export class Commit {
   public readonly type = ObjectType.COMMIT;
@@ -9,23 +9,24 @@ export class Commit {
 
     if (
       !(
-        headers.has("tree") &&
-        headers.has("author") &&
-        headers.has("committer")
+        headers.has('tree') &&
+        headers.has('author') &&
+        headers.has('committer')
       )
-    ) return null;
+    )
+      return null;
 
     return new Commit(
       body,
-      headers.get("tree"),
-      headers.get("author"),
-      headers.has("parent") ? headers.get("parent").split(" ") : [],
-      headers.get("committer"),
-      headers.get("gpgsig")
+      headers.get('tree'),
+      headers.get('author'),
+      headers.has('parent') ? headers.get('parent').split(' ') : [],
+      headers.get('committer'),
+      headers.get('gpgsig')
     );
   }
 
-  public constructor (
+  public constructor(
     public message: string,
     public treeId: string,
     public author: string,
@@ -36,19 +37,19 @@ export class Commit {
     //
   }
 
-  public serialize () {
+  public serialize() {
     const headers = new Map();
 
-    headers.set("tree", this.treeId);
-    headers.set("author", this.author);
-    headers.set("committer", this.committer);
+    headers.set('tree', this.treeId);
+    headers.set('author', this.author);
+    headers.set('committer', this.committer);
 
     if (this.parentIds.length) {
-      headers.set("parent", this.parentIds.join(" "));
+      headers.set('parent', this.parentIds.join(' '));
     }
 
     if (this.gpgSignature) {
-      headers.set("gpgsig", this.gpgSignature);
+      headers.set('gpgsig', this.gpgSignature);
     }
 
     const message = new Message();

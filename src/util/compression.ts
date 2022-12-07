@@ -1,5 +1,5 @@
-import util from "util";
-import zlib from "zlib";
+import util from 'util';
+import zlib from 'zlib';
 
 const compressAsync = util.promisify(zlib.deflate);
 

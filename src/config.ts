@@ -1,12 +1,12 @@
-import fs from "fs/promises";
-import ini from "ini";
+import fs from 'fs/promises';
+import ini from 'ini';
 
 export interface Config {
   core: {
     repositoryformatversion: number;
     filemode: boolean;
     bare: boolean;
-  }
+  };
 }
 
 export const DEFAULT_CONFIG: Config = {
@@ -14,15 +14,15 @@ export const DEFAULT_CONFIG: Config = {
     repositoryformatversion: 0,
     filemode: false,
     bare: false,
-  }
+  },
 };
 
 export const encode = ini.encode;
 export const decode = ini.decode;
 
 export const fetch = async (path: string): Promise<Config> => {
-  const decoded = decode(await fs.readFile(path, "utf8"));
-  
+  const decoded = decode(await fs.readFile(path, 'utf8'));
+
   decoded.core ??= {};
   decoded.core.repositoryformatversion ??= 0;
   decoded.core.filemode ??= false;

@@ -1,30 +1,27 @@
 import fs from "fs/promises";
-import mockFs from "mock-fs";
+import { vol } from "memfs";
 
 import { add } from "../../src/commands/add";
 import { ObjectStore } from "../../src/objects";
 import { IndexStore } from "../../src/staging";
+
+jest.mock("fs/promises");
 
 describe("commands/add", () => {
   let objectStore;
   let indexStore;
 
   beforeEach(async () => {
-    mockFs({
-      "/.git": {},
-    });
-    objectStore = new ObjectStore("/.git/objects");
-    indexStore = await IndexStore.from("/.git/index");
-  });
-
-  afterEach(async () => {
-    mockFs.restore();
+    vol.reset();
+    await fs.mkdir("/repo");
+    objectStore = new ObjectStore("/repo/.git/objects");
+    indexStore = await IndexStore.from("/repo/.git/index");
   });
 
   it("deve adicionar um arquivo no índice", async () => {
-    await fs.writeFile("/foo.txt", "Foo");
-    await add(objectStore, indexStore)({
-      path: "/foo.txt"
+    await fs.writeFile("/repo/foo.txt", "Foo");
+    await add("/repo", objectStore, indexStore)({
+      path: "foo.txt"
     });
 
     await indexStore.reload();
@@ -32,7 +29,7 @@ describe("commands/add", () => {
     const entries = indexStore.index.entries();
 
     expect(entries.length).toBe(1);
-    expect(entries[0]).toHaveProperty("file.path", "/foo.txt");
+    expect(entries[0]).toHaveProperty("file.path", "foo.txt");
 
     const blobObject = await objectStore.get(entries[0].objectId);
 

@@ -1,15 +1,16 @@
 import fs from "fs/promises";
+import nodePath from "path";
 
 type IndexEntryProps = { [prop in keyof IndexEntry]: IndexEntry[prop] };
 
-export const createIndexEntry = async (path: string, objectId: string): Promise<IndexEntry> => {
-  const stats = await fs.lstat(path, { bigint: true });
+export const createIndexEntry = async (rootDirectory: string, relativePath: string, objectId: string): Promise<IndexEntry> => {
+  const stats = await fs.lstat(nodePath.join(rootDirectory, relativePath), { bigint: true });
 
   const entry: IndexEntryProps = {
     objectId,
     file: {
       mode: Number(stats.mode),
-      path,
+      path: relativePath,
       size: Number(stats.size),
       inodeNumber: Number(stats.ino),
       device: Number(stats.dev),
@@ -35,7 +36,7 @@ export class IndexEntry {
 
   public file: {
     mode: number,
-    path: string,
+    path: string, // Relativo ao diretório de nível superior
     size: number,
     inodeNumber: number,
     device: number,

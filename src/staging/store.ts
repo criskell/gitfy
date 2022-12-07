@@ -7,8 +7,6 @@ import { exists } from "../util/filesystem";
 export class IndexStore {
   public static async from(path: string): Promise<IndexStore> {
     if (! await exists(path)) {
-      await fs.writeFile(path, "");
-
       return new IndexStore(path, new Index());
     }
 

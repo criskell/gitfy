@@ -20,14 +20,14 @@ export const commit =
     const indexEntries = indexStore.index.entries();
 
     const snapshot = snapshotFromEntries(indexEntries);
-    const tree = await createTreeObject(
-      objects,
-      snapshot.get(".") as SnapshotDirectory
-    );
+    const snapshotRoot = snapshot.get(".") as SnapshotDirectory;
+    const tree = await createTreeObject(objects, snapshotRoot);
+
     const message = request.message;
     const author = request.author;
     const committer = request.author;
     const parentIds = [];
+
     const commit = new Commit(message, tree.id, author, parentIds, committer);
     const commitObject = GitObject.from(commit);
 
@@ -41,14 +41,16 @@ export const commit =
 type SnapshotDirectory = {
   type: "directory";
   path: string;
-  content: SnapshotEntry[];
+  mode: number;
+  children: SnapshotEntry[];
 };
 type SnapshotFile = {
   type: "file";
+  objectId: string;
   path: string;
-  content: string;
   mode: number;
 };
+
 type SnapshotEntry = SnapshotFile | SnapshotDirectory;
 type Snapshot = Map<string, SnapshotEntry>;
 
@@ -62,8 +64,9 @@ const snapshotFromEntries = (indexEntries: IndexEntry[]): Snapshot => {
 
     const entry: SnapshotDirectory = {
       type: "directory",
-      content: [],
+      children: [],
       path,
+      mode: 0o040000,
     };
 
     if (path === ".") {
@@ -71,21 +74,22 @@ const snapshotFromEntries = (indexEntries: IndexEntry[]): Snapshot => {
       return entry;
     }
 
-    makeRecursivelyDir(nodePath.dirname(path)).content.push(entry);
+    makeRecursivelyDir(nodePath.dirname(path)).children.push(entry);
 
     return entry;
   };
 
   for (const indexEntry of indexEntries) {
     const snapshotEntry: SnapshotFile = {
-      type: "file",
       path: indexEntry.file.path,
-      content: indexEntry.objectId,
       mode: indexEntry.file.mode,
+      type: "file",
+      objectId: indexEntry.objectId,
     };
+
     snapshot.set(indexEntry.file.path, snapshotEntry);
 
-    makeRecursivelyDir(nodePath.dirname(indexEntry.file.path)).content.push(
+    makeRecursivelyDir(nodePath.dirname(indexEntry.file.path)).children.push(
       snapshotEntry
     );
   }
@@ -98,26 +102,23 @@ const createTreeObject = async (
   snapshotEntry: SnapshotDirectory
 ): Promise<GitObject | null> => {
   const treeEntries = await Promise.all(
-    snapshotEntry.content.map(async (snapshotEntry) => {
-      if (snapshotEntry.type === "file") {
-        return new TreeEntry(
-          snapshotEntry.mode.toString(8),
-          nodePath.basename(snapshotEntry.path),
-          snapshotEntry.content
-        );
-      }
-
-      const tree = await createTreeObject(objects, snapshotEntry);
+    snapshotEntry.children.map(async (snapshotEntry) => {
+      const objectId = snapshotEntry.type === "file"
+        ? snapshotEntry.objectId
+        : (await createTreeObject(objects, snapshotEntry)).id;
 
       return new TreeEntry(
-        "040000",
+        snapshotEntry.mode.toString(8),
         nodePath.basename(snapshotEntry.path),
-        tree.id
+        objectId,
       );
     })
   );
+
   const tree = new Tree(treeEntries);
   const object = GitObject.from(tree);
+  
   await objects.add(object);
+  
   return object;
 };

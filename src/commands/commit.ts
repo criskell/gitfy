@@ -1,37 +1,41 @@
 import nodePath from 'path';
 
-import { ObjectStore } from '../objects/store';
 import { IndexEntry, IndexStore } from '../staging';
-import { GitObject, Commit, Tree, Blob } from '../objects';
-import { TreeEntry } from '../objects/body/tree';
+import { GitObject, Commit, Tree, Blob, TreeEntry, ObjectStore } from '../objects';
 
-interface CommitRequest {
+export interface CommitCommand {
   message: string;
   author: string;
 }
 
-interface CommitResponse {
+export interface CommitResult {
   commitId: string;
 }
 
-export const commit =
-  (objects: ObjectStore, indexStore: IndexStore) =>
-  async (request: CommitRequest): Promise<CommitResponse> => {
+export interface CommitParams extends CommitCommand {
+  objectStore: ObjectStore;
+  indexStore: IndexStore;
+}
+
+export const commit = async ({
+  objectStore,
+  indexStore,
+  message,
+  author,
+}): Promise<CommitResult> => {
     const indexEntries = indexStore.index.entries();
 
     const snapshot = snapshotFromEntries(indexEntries);
     const snapshotRoot = snapshot.get('.') as SnapshotDirectory;
-    const tree = await createTreeObject(objects, snapshotRoot);
+    const tree = await createTreeObject(objectStore, snapshotRoot);
 
-    const message = request.message;
-    const author = request.author;
-    const committer = request.author;
+    const committer = author;
     const parentIds = [];
 
     const commit = new Commit(message, tree.id, author, parentIds, committer);
     const commitObject = GitObject.from(commit);
 
-    await objects.add(commitObject);
+    await objectStore.add(commitObject);
 
     return {
       commitId: commitObject.id,
@@ -44,6 +48,7 @@ type SnapshotDirectory = {
   mode: number;
   children: SnapshotEntry[];
 };
+
 type SnapshotFile = {
   type: 'file';
   objectId: string;

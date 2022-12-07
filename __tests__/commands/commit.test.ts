@@ -37,18 +37,17 @@ describe("commands/commit", () => {
       },
       "/repo"
     );
-    await add(
-      "/repo",
+
+    await add({
+      rootDirectory: "/repo",
       objectStore,
-      indexStore
-    )({
-      path: ".",
+      indexStore,
+      path: "."
     });
 
-    const response = await commit(
+    const response = await commit({
       objectStore,
-      indexStore
-    )({
+      indexStore,
       message: "blabla",
       author: "lol",
     });

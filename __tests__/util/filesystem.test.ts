@@ -1,11 +1,10 @@
 import fs from "fs/promises";
 import nodePath from "path";
 
-import { setupFs } from "../support";
+import { setupFs } from "../__support__";
 import { exists, createTree, listFiles } from "../../src/util/filesystem";
 
-jest.mock("fs/promises");
-setupFs();
+setupFs({ mock: true });
 
 describe("util/filesystem", () => {
   describe("exists", () => {

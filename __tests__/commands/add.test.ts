@@ -1,12 +1,11 @@
 import fs from "fs/promises";
 import mockfs from "mock-fs";
 
-import { setup, setupTestRepo } from "../__support__";
+import { setupFs, setupTestRepo } from "../__support__";
 import { add } from "../../src/commands/add";
-import { ObjectStore, ObjectType } from "../../src/objects";
-import { IndexStore } from "../../src/staging";
+import { ObjectType } from "../../src/objects";
 
-setup();
+setupFs();
 
 describe("commands/add", () => {
   it("deve adicionar um arquivo no índice", async () => {

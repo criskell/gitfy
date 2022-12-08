@@ -6,9 +6,11 @@ import crypto from "crypto";
 import util from "util";
 
 import { Repository, loadRepository } from "../../src/repository";
+import { createTree } from "../../src/util/filesystem";
 import { init } from "../../src/commands/init";
 
 const FIXTURES_PATH = nodePath.join(__dirname, "fixtures");
+const TESTDATA_PATH = nodePath.join(__dirname, "testdata");
 
 type TestRepository = Repository & {
   restore(): Promise<void>;
@@ -17,35 +19,55 @@ type TestRepository = Repository & {
 type SetupTestRepoParams = {
   isBare?: boolean;
   tree?: object;
+  mockFs?: boolean;
+  testName?: string;
+  datadir?: boolean;
 };
 
 const randomBytes = util.promisify(crypto.randomBytes);
 
-export const setup = () => {
+export const fixturePath = (fixture: string) => {
+  return nodePath.join(FIXTURES_PATH, fixture);
+};
+
+export const setupFs = ({ mock = false }: { mock?: boolean } = {}) => {
+  beforeEach(() => {
+    if (mock)
+      mockfs();
+  });
+
   afterEach(() => {
-    mockfs.restore();
+    restoreTests();
   });
 }
 
 export const setupTestRepo = async (params: SetupTestRepoParams): Promise<TestRepository> => {
-  const dirName = (await randomBytes(10)).toString("hex");
-  const repoPath = nodePath.join(os.tmpdir(), dirName);
+  const parentPath = params.datadir ? TESTDATA_PATH : os.tmpdir();
+  const testName = params.testName ? params.testName.replace("/", "-") : "";
+  const dirName = (await randomBytes(10)).toString("hex") + testName;
+  const repoPath = nodePath.join(parentPath, dirName);
 
-  if (params.tree) {
-    params.tree = Object.fromEntries(
-      Object.entries(params.tree)
-        .map(([path, content]) => [nodePath.join(repoPath, path), content])
-    );
+  params.mockFs ??= true;
+
+  if (params.mockFs) {
+    mockfs();
   }
 
-  mockfs(params.tree);
+  await init({ rootDirectory: repoPath, isBare: Boolean(params.isBare) });
 
-  await init({ rootDirectory: repoPath, isBare: params.isBare });
+  if (params.tree) {
+    await createTree(params.tree as any, repoPath);
+  }
+
   const repository: TestRepository = Object.assign(await loadRepository(repoPath), {
     async restore () {
-      mockfs.restore();
+      restoreTests();
     }
   });
 
   return repository;
+};
+
+export const restoreTests = () => {
+  mockfs.restore();
 };

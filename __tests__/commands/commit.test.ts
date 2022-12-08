@@ -1,33 +1,18 @@
 import fs from "fs/promises";
-import mockfs from "mock-fs";
+import nodePath from "path";
 
+import { setupFs, setupTestRepo } from "../__support__";
 import { createTree } from "../../src/util/filesystem";
 import { add } from "../../src/commands/add";
 import { commit } from "../../src/commands/commit";
 import { checkout } from "../../src/commands/checkout";
-import { ObjectStore } from "../../src/objects";
-import { IndexStore } from "../../src/staging";
+
+setupFs();
 
 describe("commands/commit", () => {
-  let objectStore;
-  let indexStore;
-
-  beforeEach(async () => {
-    mockfs();
-
-    await fs.mkdir("/repo");
-
-    objectStore = new ObjectStore("/repo/.git/objects");
-    indexStore = await IndexStore.from("/repo/.git/index");
-  });
-
-  afterEach(() => {
-    mockfs.restore();
-  });
-
   it("deve criar um commit com uma tree gerada do índice", async () => {
-    await createTree(
-      {
+    const repo = await setupTestRepo({
+      tree: {
         "foo.txt": "fu",
         bar: {
           test: {
@@ -35,33 +20,25 @@ describe("commands/commit", () => {
           },
         },
       },
-      "/repo"
-    );
-
-    await add({
-      rootDirectory: "/repo",
-      objectStore,
-      indexStore,
-      path: "."
     });
 
-    const response = await commit({
-      objectStore,
-      indexStore,
-      message: "blabla",
-      author: "lol",
-    });
+    await repo.add({ path: "foo.txt" });
+    await repo.add({ path: "bar/test/a.txt" });
 
-    await fs.rm("/repo/foo.txt");
-    await fs.rm("/repo/bar/test/a.txt");
+    const response = await repo.commit({ message: "blabla", author: "lol" });
 
-    await checkout(objectStore)({
+    await fs.rm(nodePath.join(repo.path.root, "foo.txt"));
+    await fs.rm(nodePath.join(repo.path.root, "bar/test/a.txt"));
+
+    const workingTreePath = nodePath.join(nodePath.dirname(repo.path.root), "working-tree");
+
+    await checkout(repo.objectStore)({
       commitId: response.commitId,
-      workingTreePath: "/working-tree",
+      workingTreePath,
     });
 
-    expect(await fs.readFile("/working-tree/foo.txt", "utf8")).toBe("fu");
-    expect(await fs.readFile("/working-tree/bar/test/a.txt", "utf8")).toBe(
+    expect(await fs.readFile(nodePath.join(workingTreePath, "foo.txt"), "utf8")).toBe("fu");
+    expect(await fs.readFile(nodePath.join(workingTreePath, "bar/test/a.txt"), "utf8")).toBe(
       "fuu"
     );
   });

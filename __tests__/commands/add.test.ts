@@ -1,18 +1,12 @@
-import fs from "fs/promises";
-import mockfs from "mock-fs";
-
-import { setupFs, setupTestRepo } from "../__support__";
-import { add } from "../../src/commands/add";
+import { setupRepository } from "../__support__";
 import { ObjectType } from "../../src/objects";
-
-setupFs();
 
 describe("commands/add", () => {
   it("deve adicionar um arquivo no índice", async () => {
-    const repo = await setupTestRepo({
+    const repo = await setupRepository({
       tree: {
-        "foo.txt": "Foo"
-      }
+        "foo.txt": "Foo",
+      },
     });
 
     await repo.add({ path: "foo.txt" });
@@ -32,7 +26,5 @@ describe("commands/add", () => {
 
     expect(blob.type).toBe(ObjectType.BLOB);
     expect(blob.content).toEqual(Buffer.from("Foo"));
-
-    repo.restore();
   });
 });

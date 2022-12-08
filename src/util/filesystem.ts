@@ -1,7 +1,7 @@
 import nodePath from "path";
 import fs from "fs/promises";
 
-type Tree = {
+export type Tree = {
   [name: string]: Tree | string;
 };
 

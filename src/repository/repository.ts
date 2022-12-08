@@ -7,6 +7,7 @@ import { Config } from "./config";
 import { ObjectStore } from "../objects";
 import { IndexStore } from "../staging";
 import { findGitDirectory } from "../util/repository";
+import { RefStore } from "../refs";
 
 export const loadRepository = async (
   path?: string
@@ -22,7 +23,14 @@ export const loadRepository = async (
   );
   const objectStore = new ObjectStore(pathBuilder.objects);
   const indexStore = await IndexStore.from(pathBuilder.index);
-  const repo = new Repository(pathBuilder, config, objectStore, indexStore);
+  const refStore = new RefStore(pathBuilder.git);
+  const repo = new Repository(
+    pathBuilder,
+    config,
+    objectStore,
+    indexStore,
+    refStore
+  );
 
   return repo;
 };
@@ -32,7 +40,8 @@ export class Repository {
     public path: PathBuilder,
     public config: Config,
     public objectStore: ObjectStore,
-    public indexStore: IndexStore
+    public indexStore: IndexStore,
+    public refStore: RefStore
   ) {}
 
   public add(command: AddCommand) {
@@ -47,6 +56,7 @@ export class Repository {
   public commit(command: CommitCommand) {
     return commit({
       ...command,
+      refStore: this.refStore,
       indexStore: this.indexStore,
       objectStore: this.objectStore,
     });

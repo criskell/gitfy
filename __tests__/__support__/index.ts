@@ -34,8 +34,10 @@ export const setupFilesystem = async (
     isBare?: boolean;
   } = {}
 ): Promise<TestFilesystem> => {
-  options.saveTemporary ??= true;
-  options.mock ??= true;
+  options.saveTemporary ??= !Boolean(
+    process.env.GITFY_REAL_FILESYSTEM || false
+  );
+  options.mock ??= !Boolean(process.env.GITFY_REAL_FILESYSTEM || false);
   options.init ??= false;
   options.isBare ??= false;
 

@@ -47,7 +47,7 @@ export const serializeEntry = (entry: IndexEntry): Buffer => {
   buf.writeUInt32BE(entry.timestamps.dataChanged[0], 8);
   buf.writeUInt32BE(entry.timestamps.dataChanged[1], 12);
   buf.writeUInt32BE(entry.file.device, 16);
-  buf.writeUInt32BE(entry.file.inodeNumber, 20);
+  buf.writeUInt32BE(entry.file.inodeNumber % 2 ** 32, 20);
   buf.writeUInt32BE(entry.file.mode, 24);
   buf.writeUInt32BE(entry.userId, 28);
   buf.writeUInt32BE(entry.groupId, 32);

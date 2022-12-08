@@ -15,6 +15,7 @@ describe("commands/commit", () => {
           },
         },
       },
+      testName: "commit",
     });
 
     await repo.add({ path: "foo.txt" });

@@ -9,6 +9,7 @@ import {
   TreeEntry,
   ObjectStore,
 } from "../objects";
+import { RefStore } from "../refs";
 
 export interface CommitCommand {
   message: string;
@@ -22,11 +23,13 @@ export interface CommitResult {
 export interface CommitParams extends CommitCommand {
   objectStore: ObjectStore;
   indexStore: IndexStore;
+  refStore: RefStore;
 }
 
 export const commit = async ({
   objectStore,
   indexStore,
+  refStore,
   message,
   author,
 }): Promise<CommitResult> => {
@@ -37,12 +40,20 @@ export const commit = async ({
   const tree = await createTreeObject(objectStore, snapshotRoot);
 
   const committer = author;
-  const parentIds = [];
+  const head = await refStore.resolve("HEAD");
+  const parentIds = head ? [head] : [];
 
   const commit = new Commit(message, tree.id, author, parentIds, committer);
   const commitObject = GitObject.from(commit);
 
   await objectStore.add(commitObject);
+
+  await refStore.set(
+    (
+      await refStore.getDirectRef("HEAD")
+    ).name,
+    commitObject.id
+  );
 
   return {
     commitId: commitObject.id,

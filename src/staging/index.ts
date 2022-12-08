@@ -1,10 +1,10 @@
-import { IndexEntry } from './entry';
+import { IndexEntry } from "./entry";
 
-import { parseIndex } from './parser';
-import { serializeIndex } from './serializer';
+import { parseIndex } from "./parser";
+import { serializeIndex } from "./serializer";
 
-export * from './entry';
-export { IndexStore } from './store';
+export * from "./entry";
+export { IndexStore } from "./store";
 
 export class Index {
   public static from(rawIndex: Buffer) {

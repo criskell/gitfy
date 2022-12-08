@@ -1,15 +1,15 @@
-import { ObjectBody, BodySerializer } from './body';
-import { Wrapper } from './wrapper';
-import { sha1 } from '../util/hash';
+import { ObjectBody, BodySerializer } from "./body";
+import { Wrapper } from "./wrapper";
+import { sha1 } from "../util/hash";
 
-export * from './body';
-export { ObjectStore } from './store';
+export * from "./body";
+export { ObjectStore } from "./store";
 
 export type ObjectId = string;
 export enum ObjectType {
-  BLOB = 'blob',
-  COMMIT = 'commit',
-  TREE = 'tree',
+  BLOB = "blob",
+  COMMIT = "commit",
+  TREE = "tree",
 }
 
 export class GitObject {

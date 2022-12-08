@@ -1,4 +1,4 @@
-import nodePath from 'path';
+import nodePath from "path";
 
 export class PathBuilder {
   private rootPath: string;
@@ -10,9 +10,9 @@ export class PathBuilder {
   constructor(rootPath: string, isBare: boolean = false) {
     this.rootPath = rootPath;
     this.gitPath = isBare ? rootPath : `${rootPath}/.git`;
-    this.configPath = nodePath.join(this.gitPath, 'config');
-    this.objectsPath = nodePath.join(this.gitPath, 'objects');
-    this.indexPath = nodePath.join(this.gitPath, 'index');
+    this.configPath = nodePath.join(this.gitPath, "config");
+    this.objectsPath = nodePath.join(this.gitPath, "objects");
+    this.indexPath = nodePath.join(this.gitPath, "index");
   }
 
   public get root() {

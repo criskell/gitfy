@@ -1,4 +1,4 @@
-import { ObjectType } from '..';
+import { ObjectType } from "..";
 
 export class Blob {
   public readonly type = ObjectType.BLOB;

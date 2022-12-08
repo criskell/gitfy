@@ -1,5 +1,5 @@
-import fs from 'fs/promises';
-import ini from 'ini';
+import fs from "fs/promises";
+import ini from "ini";
 
 export interface ConfigSchema {
   core: {
@@ -22,7 +22,7 @@ export const decode = ini.decode;
 
 export class Config {
   public static async load(path: string): Promise<Config> {
-    const decoded = ini.decode(await fs.readFile(path, 'utf8'));
+    const decoded = ini.decode(await fs.readFile(path, "utf8"));
 
     decoded.core ??= {};
     decoded.core.repositoryformatversion ??= 0;
@@ -32,7 +32,10 @@ export class Config {
     return new Config(path, decoded);
   }
 
-  constructor(public path: string, public data: ConfigSchema = DEFAULT_CONFIG) {}
+  constructor(
+    public path: string,
+    public data: ConfigSchema = DEFAULT_CONFIG
+  ) {}
 
   public async save() {
     const encoded = ini.encode(this.data);

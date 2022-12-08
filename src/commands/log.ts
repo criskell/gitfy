@@ -1,5 +1,5 @@
-import { ObjectType, ObjectId } from '../objects';
-import { ObjectStore } from '../objects/store';
+import { ObjectType, ObjectId } from "../objects";
+import { ObjectStore } from "../objects/store";
 
 export interface LogRequest {
   commitId: string;
@@ -12,7 +12,7 @@ export interface LogResponse {
 export const log =
   (store: ObjectStore) =>
   async (request: LogRequest): Promise<LogResponse> => {
-    let log = 'digraph {';
+    let log = "digraph {";
 
     const commitIds = [request.commitId];
 
@@ -28,7 +28,7 @@ export const log =
       }
     }
 
-    log += '}';
+    log += "}";
 
     return { log };
   };

@@ -1,7 +1,7 @@
-import nodePath from 'path';
+import nodePath from "path";
 
-import { createTree } from '../util/filesystem';
-import { encode, DEFAULT_CONFIG } from '../repository/config';
+import { createTree } from "../util/filesystem";
+import { encode, DEFAULT_CONFIG } from "../repository/config";
 
 interface InitRequest {
   /**
@@ -30,7 +30,7 @@ export const init = async (request: InitRequest = {}) => {
 
   const { rootDirectory, isBare } = request;
 
-  const gitDirectory = nodePath.join(rootDirectory, isBare ? '' : '.git');
+  const gitDirectory = nodePath.join(rootDirectory, isBare ? "" : ".git");
 
   await createTree(
     {
@@ -39,7 +39,7 @@ export const init = async (request: InitRequest = {}) => {
         heads: {},
         tags: {},
       },
-      HEAD: 'ref: refs/heads/master\n',
+      HEAD: "ref: refs/heads/master\n",
       config: encode({
         ...DEFAULT_CONFIG,
         core: {
@@ -47,7 +47,7 @@ export const init = async (request: InitRequest = {}) => {
           bare: isBare,
         },
       }),
-      description: '',
+      description: "",
     },
     gitDirectory
   );

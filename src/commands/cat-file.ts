@@ -1,5 +1,5 @@
-import { ObjectType, ObjectId } from '../objects';
-import { ObjectStore } from '../objects/store';
+import { ObjectType, ObjectId } from "../objects";
+import { ObjectStore } from "../objects/store";
 
 export interface CatFileRequest {
   objectId: ObjectId;

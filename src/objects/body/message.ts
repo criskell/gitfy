@@ -1,6 +1,6 @@
 export class Message {
   public headers: Map<string, string> = new Map();
-  public body: string = '';
+  public body: string = "";
 
   public static from(raw: string): Message {
     const lines = raw.split(/\n(?! )/);
@@ -9,15 +9,15 @@ export class Message {
 
     let currentLine;
 
-    while ((currentLine = lines.shift()) !== '') {
-      const spaceIndex = currentLine.indexOf(' ');
+    while ((currentLine = lines.shift()) !== "") {
+      const spaceIndex = currentLine.indexOf(" ");
       const key = currentLine.slice(0, spaceIndex);
-      const value = currentLine.slice(spaceIndex + 1).replaceAll('\n ', '\n');
+      const value = currentLine.slice(spaceIndex + 1).replaceAll("\n ", "\n");
 
       message.headers.set(key, value);
     }
 
-    message.body = lines.join('\n');
+    message.body = lines.join("\n");
 
     return message;
   }
@@ -26,12 +26,12 @@ export class Message {
     return (
       Array.from(this.headers)
         .map(([key, value]) => {
-          const serializedValue = value.replaceAll('\n', '\n ');
+          const serializedValue = value.replaceAll("\n", "\n ");
 
           return `${key} ${serializedValue}`;
         })
-        .join('\n') +
-      '\n\n' +
+        .join("\n") +
+      "\n\n" +
       this.body
     );
   }

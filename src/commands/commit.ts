@@ -1,7 +1,14 @@
-import nodePath from 'path';
+import nodePath from "path";
 
-import { IndexEntry, IndexStore } from '../staging';
-import { GitObject, Commit, Tree, Blob, TreeEntry, ObjectStore } from '../objects';
+import { IndexEntry, IndexStore } from "../staging";
+import {
+  GitObject,
+  Commit,
+  Tree,
+  Blob,
+  TreeEntry,
+  ObjectStore,
+} from "../objects";
 
 export interface CommitCommand {
   message: string;
@@ -23,34 +30,34 @@ export const commit = async ({
   message,
   author,
 }): Promise<CommitResult> => {
-    const indexEntries = indexStore.index.entries();
+  const indexEntries = indexStore.index.entries();
 
-    const snapshot = snapshotFromEntries(indexEntries);
-    const snapshotRoot = snapshot.get('.') as SnapshotDirectory;
-    const tree = await createTreeObject(objectStore, snapshotRoot);
+  const snapshot = snapshotFromEntries(indexEntries);
+  const snapshotRoot = snapshot.get(".") as SnapshotDirectory;
+  const tree = await createTreeObject(objectStore, snapshotRoot);
 
-    const committer = author;
-    const parentIds = [];
+  const committer = author;
+  const parentIds = [];
 
-    const commit = new Commit(message, tree.id, author, parentIds, committer);
-    const commitObject = GitObject.from(commit);
+  const commit = new Commit(message, tree.id, author, parentIds, committer);
+  const commitObject = GitObject.from(commit);
 
-    await objectStore.add(commitObject);
+  await objectStore.add(commitObject);
 
-    return {
-      commitId: commitObject.id,
-    };
+  return {
+    commitId: commitObject.id,
   };
+};
 
 type SnapshotDirectory = {
-  type: 'directory';
+  type: "directory";
   path: string;
   mode: number;
   children: SnapshotEntry[];
 };
 
 type SnapshotFile = {
-  type: 'file';
+  type: "file";
   objectId: string;
   path: string;
   mode: number;
@@ -65,16 +72,16 @@ const snapshotFromEntries = (indexEntries: IndexEntry[]): Snapshot => {
   const makeRecursivelyDir = (path: string): SnapshotDirectory => {
     const found = snapshot.get(path);
 
-    if (found && found.type === 'directory') return found;
+    if (found && found.type === "directory") return found;
 
     const entry: SnapshotDirectory = {
-      type: 'directory',
+      type: "directory",
       children: [],
       path,
       mode: 0o040000,
     };
 
-    if (path === '.') {
+    if (path === ".") {
       snapshot.set(path, entry);
       return entry;
     }
@@ -88,7 +95,7 @@ const snapshotFromEntries = (indexEntries: IndexEntry[]): Snapshot => {
     const snapshotEntry: SnapshotFile = {
       path: indexEntry.file.path,
       mode: indexEntry.file.mode,
-      type: 'file',
+      type: "file",
       objectId: indexEntry.objectId,
     };
 
@@ -109,7 +116,7 @@ const createTreeObject = async (
   const treeEntries = await Promise.all(
     snapshotEntry.children.map(async (snapshotEntry) => {
       const objectId =
-        snapshotEntry.type === 'file'
+        snapshotEntry.type === "file"
           ? snapshotEntry.objectId
           : (await createTreeObject(objects, snapshotEntry)).id;
 

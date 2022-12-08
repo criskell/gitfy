@@ -1,4 +1,4 @@
-import { IndexEntry } from './entry';
+import { IndexEntry } from "./entry";
 
 export const parseHeader = (raw: Buffer) => {
   const signature = raw.subarray(0, 4);
@@ -43,7 +43,7 @@ export const parseEntries = (
     const uid = data.readUInt32BE(cursor + 28);
     const gid = data.readUInt32BE(cursor + 32);
     const size = data.readUInt32BE(cursor + 36);
-    const objectId = data.subarray(cursor + 40, cursor + 60).toString('hex');
+    const objectId = data.subarray(cursor + 40, cursor + 60).toString("hex");
     const rawFlags = data.readUInt16BE(cursor + 60);
     const flags = parseFlags(rawFlags);
     const path = data
@@ -91,7 +91,7 @@ export const parseIndex = (
   rawIndex: Buffer
 ): {
   header: ReturnType<typeof parseHeader>;
-  entries: ReturnType<typeof parseEntries>['entries'];
+  entries: ReturnType<typeof parseEntries>["entries"];
   rawExtensions: Buffer;
   checksum: Buffer;
 } => {

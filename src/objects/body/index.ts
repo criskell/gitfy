@@ -1,8 +1,8 @@
-import { ObjectType } from '..';
-import { Commit } from './commit';
-import { Blob } from './blob';
-import { Tree, TreeEntry } from './tree';
-import { Wrapper } from '../wrapper';
+import { ObjectType } from "..";
+import { Commit } from "./commit";
+import { Blob } from "./blob";
+import { Tree, TreeEntry } from "./tree";
+import { Wrapper } from "../wrapper";
 
 export type ObjectBody = Commit | Blob | Tree;
 

@@ -1,6 +1,6 @@
-import { GitObject, ObjectType, ObjectId, generateObjectId } from '../objects';
-import { ObjectStore } from '../objects/store';
-import { Wrapper } from '../objects/wrapper';
+import { GitObject, ObjectType, ObjectId, generateObjectId } from "../objects";
+import { ObjectStore } from "../objects/store";
+import { Wrapper } from "../objects/wrapper";
 
 export interface HashObjectRequest {
   type: ObjectType;

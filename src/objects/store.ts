@@ -1,7 +1,7 @@
-import fs from 'fs/promises';
+import fs from "fs/promises";
 
-import { GitObject, ObjectId } from '.';
-import { compress, decompress } from '../util/compression';
+import { GitObject, ObjectId } from ".";
+import { compress, decompress } from "../util/compression";
 
 export class ObjectStore {
   constructor(public path: string) {}
@@ -18,7 +18,7 @@ export class ObjectStore {
 
       return object;
     } catch (e) {
-      if (e.code === 'ENOTENT') return null;
+      if (e.code === "ENOTENT") return null;
       throw e;
     }
   }

@@ -1,5 +1,5 @@
-import { IndexEntry } from './entry';
-import { sha1 } from '../util/hash';
+import { IndexEntry } from "./entry";
+import { sha1 } from "../util/hash";
 
 export const serializeHeader = (
   version: number,
@@ -7,7 +7,7 @@ export const serializeHeader = (
 ): Buffer => {
   const header = Buffer.alloc(12);
 
-  header.write('DIRC');
+  header.write("DIRC");
   header.writeUInt32BE(version, 4);
   header.writeUInt32BE(numberOfEntries, 8);
 
@@ -52,7 +52,7 @@ export const serializeEntry = (entry: IndexEntry): Buffer => {
   buf.writeUInt32BE(entry.userId, 28);
   buf.writeUInt32BE(entry.groupId, 32);
   buf.writeUInt32BE(entry.file.size, 36);
-  buf.write(entry.objectId, 40, 20, 'hex');
+  buf.write(entry.objectId, 40, 20, "hex");
   buf.writeUInt16BE(flags, 60);
   buf.write(entry.file.path, 62);
 
@@ -72,7 +72,7 @@ export const serializeIndex = (index: {
       ? [header, entries, index.rawExtensions]
       : [header, entries]
   );
-  const checksum = Buffer.from(sha1(content), 'hex');
+  const checksum = Buffer.from(sha1(content), "hex");
 
   return Buffer.concat([content, checksum]);
 };

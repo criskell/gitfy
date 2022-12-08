@@ -1,7 +1,7 @@
 import nodePath from "path";
 
-import { add, AddCommand } from '../commands/add';
-import { commit, CommitCommand } from '../commands/commit';
+import { add, AddCommand } from "../commands/add";
+import { commit, CommitCommand } from "../commands/commit";
 import { PathBuilder } from "./path";
 import { Config } from "./config";
 import { ObjectStore } from "../objects";
@@ -15,7 +15,7 @@ export const loadRepository = async (
 
   if (!gitDirectory) return null;
 
-  const config = await Config.load(nodePath.join(gitDirectory, 'config'));
+  const config = await Config.load(nodePath.join(gitDirectory, "config"));
   const pathBuilder = new PathBuilder(
     !config.data.core.bare ? nodePath.dirname(gitDirectory) : gitDirectory,
     config.data.core.bare

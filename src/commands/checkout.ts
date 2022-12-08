@@ -1,9 +1,9 @@
-import fs from 'fs/promises';
-import nodePath from 'path';
+import fs from "fs/promises";
+import nodePath from "path";
 
-import { ObjectType, ObjectId } from '../objects';
-import { ObjectStore } from '../objects/store';
-import { TreeEntry } from '../objects/body/tree';
+import { ObjectType, ObjectId } from "../objects";
+import { ObjectStore } from "../objects/store";
+import { TreeEntry } from "../objects/body/tree";
 
 export interface CheckoutRequest {
   commitId: ObjectId;

@@ -1,5 +1,5 @@
-import nodePath from 'path';
-import fs from 'fs/promises';
+import nodePath from "path";
+import fs from "fs/promises";
 
 type Tree = {
   [name: string]: Tree | string;
@@ -14,7 +14,7 @@ export const createTree = async (tree: Tree, baseDirectory?: string) => {
     Object.entries(tree).map(([name, contents]) => {
       const path = nodePath.join(dir, name);
 
-      if (typeof contents === 'string') {
+      if (typeof contents === "string") {
         return fs.writeFile(path, contents);
       }
 

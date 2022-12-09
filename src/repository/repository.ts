@@ -42,23 +42,14 @@ export class Repository {
     public objectStore: ObjectStore,
     public indexStore: IndexStore,
     public refStore: RefStore
-  ) {}
+  ) {
+  }
 
   public add(command: AddCommand) {
-    return add({
-      ...command,
-      rootDirectory: this.path.root,
-      indexStore: this.indexStore,
-      objectStore: this.objectStore,
-    });
+    return add(this, command);
   }
 
   public commit(command: CommitCommand) {
-    return commit({
-      ...command,
-      refStore: this.refStore,
-      indexStore: this.indexStore,
-      objectStore: this.objectStore,
-    });
+    return commit(this, command);
   }
 }

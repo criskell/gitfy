@@ -1,13 +1,14 @@
 import nodePath from "path";
 
-import { IndexEntry, IndexStore } from "../staging";
+import { Repository } from "../repository";
+import { IndexEntry  } from "../staging";
 import {
   GitObject,
   Commit,
   Tree,
   Blob,
   TreeEntry,
-  ObjectStore,
+  ObjectStore
 } from "../objects";
 import { RefStore } from "../refs";
 
@@ -20,37 +21,27 @@ export interface CommitResult {
   commitId: string;
 }
 
-export interface CommitParams extends CommitCommand {
-  objectStore: ObjectStore;
-  indexStore: IndexStore;
-  refStore: RefStore;
-}
-
-export const commit = async ({
-  objectStore,
-  indexStore,
-  refStore,
-  message,
-  author,
-}): Promise<CommitResult> => {
-  const indexEntries = indexStore.index.entries();
+export const commit = async (repo: Repository, command: CommitCommand): Promise<CommitResult> => {
+  const indexEntries = repo.indexStore.index.entries();
 
   const snapshot = snapshotFromEntries(indexEntries);
   const snapshotRoot = snapshot.get(".") as SnapshotDirectory;
-  const tree = await createTreeObject(objectStore, snapshotRoot);
+  const tree = await createTreeObject(repo.objectStore, snapshotRoot);
 
-  const committer = author;
-  const head = await refStore.resolve("HEAD");
+  const message = command.message;
+  const author = command.author;
+  const committer = command.author;
+  const head = await repo.refStore.resolve("HEAD");
   const parentIds = head ? [head] : [];
 
   const commit = new Commit(message, tree.id, author, parentIds, committer);
   const commitObject = GitObject.from(commit);
 
-  await objectStore.add(commitObject);
+  await repo.objectStore.add(commitObject);
 
-  await refStore.set(
+  await repo.refStore.set(
     (
-      await refStore.getDirectRef("HEAD")
+      await repo.refStore.getDirectRef("HEAD")
     ).name,
     commitObject.id
   );

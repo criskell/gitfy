@@ -2,7 +2,6 @@ import fs from "fs/promises";
 import nodePath from "path";
 
 import { setupRepository } from "../__support__";
-import { checkout } from "../../src/commands/checkout";
 
 describe("commands/commit", () => {
   it("deve criar um commit com uma tree gerada do índice", async () => {
@@ -31,7 +30,7 @@ describe("commands/commit", () => {
       "working-tree"
     );
 
-    await checkout(repo.objectStore)({
+    await repo.checkout({
       commitId: response.commitId,
       workingTreePath,
     });

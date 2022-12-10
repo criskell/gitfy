@@ -2,6 +2,7 @@ import nodePath from "path";
 
 import { add, AddCommand } from "../commands/add";
 import { commit, CommitCommand } from "../commands/commit";
+import { checkout, CheckoutCommand } from "../commands/checkout";
 import { PathBuilder } from "./path";
 import { Config } from "./config";
 import { ObjectStore } from "../objects";
@@ -21,7 +22,7 @@ export const loadRepository = async (
     !config.data.core.bare ? nodePath.dirname(gitDirectory) : gitDirectory,
     config.data.core.bare
   );
-  const objectStore = new ObjectStore(pathBuilder.objects);
+  const objectStore = new ObjectStore(pathBuilder);
   const indexStore = await IndexStore.from(pathBuilder.index);
   const refStore = new RefStore(pathBuilder.git);
   const repo = new Repository(
@@ -42,8 +43,7 @@ export class Repository {
     public objectStore: ObjectStore,
     public indexStore: IndexStore,
     public refStore: RefStore
-  ) {
-  }
+  ) {}
 
   public add(command: AddCommand) {
     return add(this, command);
@@ -51,5 +51,9 @@ export class Repository {
 
   public commit(command: CommitCommand) {
     return commit(this, command);
+  }
+
+  public checkout(command: CheckoutCommand) {
+    return checkout(this, command);
   }
 }

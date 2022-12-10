@@ -1,53 +1,55 @@
 import nodePath from "path";
 
 import { Repository } from "../repository";
-import { IndexEntry  } from "../staging";
-import {
-  GitObject,
-  Commit,
-  Tree,
-  Blob,
-  TreeEntry,
-  ObjectStore
-} from "../objects";
+import { IndexEntry } from "../staging";
+import { ObjectStore } from "../objects";
 import { RefStore } from "../refs";
 
 export interface CommitCommand {
   message: string;
   author: string;
+  committer?: string;
 }
 
 export interface CommitResult {
   commitId: string;
 }
 
-export const commit = async (repo: Repository, command: CommitCommand): Promise<CommitResult> => {
+export const commit = async (
+  repo: Repository,
+  command: CommitCommand
+): Promise<CommitResult> => {
   const indexEntries = repo.indexStore.index.entries();
 
   const snapshot = snapshotFromEntries(indexEntries);
   const snapshotRoot = snapshot.get(".") as SnapshotDirectory;
-  const tree = await createTreeObject(repo.objectStore, snapshotRoot);
+  const treeId = await createTreeObject(repo.objectStore, snapshotRoot);
 
   const message = command.message;
   const author = command.author;
-  const committer = command.author;
-  const head = await repo.refStore.resolve("HEAD");
-  const parentIds = head ? [head] : [];
+  const committer = command.committer || command.author;
 
-  const commit = new Commit(message, tree.id, author, parentIds, committer);
-  const commitObject = GitObject.from(commit);
+  const headCommitId = await repo.refStore.resolve("HEAD");
+  const parentIds = headCommitId ? [headCommitId] : [];
 
-  await repo.objectStore.add(commitObject);
+  const commitId = await repo.objectStore.add({
+    type: "commit",
+    message,
+    treeId: treeId,
+    author,
+    parentIds,
+    committer,
+  });
 
   await repo.refStore.set(
     (
       await repo.refStore.getDirectRef("HEAD")
     ).name,
-    commitObject.id
+    commitId,
   );
 
   return {
-    commitId: commitObject.id,
+    commitId,
   };
 };
 
@@ -114,26 +116,24 @@ const snapshotFromEntries = (indexEntries: IndexEntry[]): Snapshot => {
 const createTreeObject = async (
   objects: ObjectStore,
   snapshotEntry: SnapshotDirectory
-): Promise<GitObject> => {
+): Promise<string> => {
   const treeEntries = await Promise.all(
     snapshotEntry.children.map(async (snapshotEntry) => {
       const objectId =
         snapshotEntry.type === "file"
           ? snapshotEntry.objectId
-          : (await createTreeObject(objects, snapshotEntry)).id;
+          : (await createTreeObject(objects, snapshotEntry));
 
-      return new TreeEntry(
-        snapshotEntry.mode.toString(8),
-        nodePath.basename(snapshotEntry.path),
-        objectId
-      );
+      return {
+        mode: snapshotEntry.mode,
+        path: nodePath.basename(snapshotEntry.path),
+        objectId,
+      };
     })
   );
 
-  const tree = new Tree(treeEntries);
-  const object = GitObject.from(tree);
-
-  await objects.add(object);
-
-  return object;
+  return objects.add({
+    type: "tree",
+    entries: treeEntries,
+  });
 };

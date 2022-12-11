@@ -30,11 +30,7 @@ const addFile = async (repo: Repository, path: string): Promise<void> => {
     data: content,
   });
   const relativePath = nodePath.relative(repo.path.root, path);
-  const indexEntry = await createIndexEntry(
-    repo.path.root,
-    relativePath,
-    id,
-  );
+  const indexEntry = await createIndexEntry(repo.path.root, relativePath, id);
 
   repo.indexStore.index.add(indexEntry);
 };

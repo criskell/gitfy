@@ -32,12 +32,6 @@ export type FindOneResult<F extends FindOneOptions> = F["raw"] extends true
   ? RawObject
   : Extract<ParsedObject, { type: F["type"] }>;
 
-type Test0 = FindOneResult<{
-  id: "aa";
-  raw: true;
-  type: "commit";
-}>;
-
 /**
  * Banco de dados de objetos.
  */
@@ -70,9 +64,10 @@ export class ObjectStore {
    * Adiciona um objeto no banco de dados.
    */
   public async add(object: GitObject): Promise<{ id: string }> {
-    const wrapped = Buffer.isBuffer(object.data)
-      ? wrapObject(object as any)
-      : wrapObject(serializeObject(object as any));
+    const wrapped =
+      object instanceof RawObject
+        ? wrapObject(object)
+        : wrapObject(serializeObject(object));
     const objectId = sha1(wrapped);
     const objectPath = this.path.object(objectId);
 

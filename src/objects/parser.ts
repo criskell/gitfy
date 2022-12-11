@@ -4,6 +4,7 @@ import {
   TreeObject,
   isObjectType,
   ParsedObject,
+  BlobObject,
 } from "./object";
 import { parseMessage } from "./message";
 
@@ -20,15 +21,16 @@ export const unwrapObject = (wrapped: Buffer): RawObject => {
 
   const data = wrapped.subarray(nullIndex + 1, nullIndex + size + 1);
 
-  return {
+  return new RawObject({
     type,
     data,
-  };
+  });
 };
 
 export const parseObject = (raw: RawObject): ParsedObject => {
   if (raw.type === "commit") return parseCommit(raw);
   if (raw.type === "tree") return parseTree(raw);
+  if (raw.type === "blob") return parseBlob(raw);
 };
 
 export const parseCommit = ({ data }: RawObject): CommitObject => {
@@ -79,5 +81,12 @@ export const parseTree = ({ data }: RawObject): TreeObject => {
   return {
     type: "tree",
     data: entries,
+  };
+};
+
+export const parseBlob = ({ data }: RawObject): BlobObject => {
+  return {
+    type: "blob",
+    data,
   };
 };

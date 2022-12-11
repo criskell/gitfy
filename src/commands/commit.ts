@@ -3,7 +3,6 @@ import nodePath from "path";
 import { Repository } from "../repository";
 import { IndexEntry } from "../staging";
 import { ObjectStore } from "../objects";
-import { RefStore } from "../refs";
 
 export interface CommitCommand {
   message: string;
@@ -40,14 +39,14 @@ export const commit = async (
       author,
       parentIds,
       committer,
-    }
+    },
   });
 
   await repo.refStore.set(
     (
       await repo.refStore.getDirectRef("HEAD")
     ).name,
-    commitId,
+    commitId
   );
 
   return {
@@ -124,7 +123,7 @@ const createTreeObject = async (
       const objectId =
         snapshotEntry.type === "file"
           ? snapshotEntry.objectId
-          : (await createTreeObject(objects, snapshotEntry));
+          : await createTreeObject(objects, snapshotEntry);
 
       return {
         mode: snapshotEntry.mode,
@@ -134,8 +133,10 @@ const createTreeObject = async (
     })
   );
 
-  return (await objects.add({
-    type: "tree",
-    data: treeEntries,
-  })).id;
+  return (
+    await objects.add({
+      type: "tree",
+      data: treeEntries,
+    })
+  ).id;
 };

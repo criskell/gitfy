@@ -9,7 +9,10 @@ export interface CheckoutCommand {
   workingTreePath: string;
 }
 
-export const checkout = async (repo: Repository, command: CheckoutCommand): Promise<void> => {
+export const checkout = async (
+  repo: Repository,
+  command: CheckoutCommand
+): Promise<void> => {
   const commit = await repo.objects.findOne({
     type: "commit",
     id: command.commitId,

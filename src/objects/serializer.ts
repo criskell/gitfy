@@ -4,6 +4,7 @@ import {
   TreeEntry,
   RawObject,
   CommitObject,
+  BlobObject,
 } from "./object";
 import { serializeMessage } from "./message";
 
@@ -17,6 +18,7 @@ export const wrapObject = ({ type, data }: RawObject): Buffer => {
 export const serializeObject = (object: ParsedObject): RawObject => {
   if (object.type === "commit") return serializeCommit(object);
   if (object.type === "tree") return serializeTree(object);
+  if (object.type === "blob") return serializeBlob(object);
 };
 
 export const serializeCommit = (commit: CommitObject): RawObject => {
@@ -39,10 +41,10 @@ export const serializeCommit = (commit: CommitObject): RawObject => {
     body: commit.data.message,
   };
 
-  return {
+  return new RawObject({
     type: "commit",
     data: Buffer.from(serializeMessage(message)),
-  };
+  });
 };
 
 export const serializeTreeEntry = (entry: TreeEntry): Buffer => {
@@ -53,8 +55,15 @@ export const serializeTreeEntry = (entry: TreeEntry): Buffer => {
 };
 
 export const serializeTree = (tree: TreeObject): RawObject => {
-  return {
+  return new RawObject({
     type: "tree",
     data: Buffer.concat(tree.data.map((entry) => serializeTreeEntry(entry))),
-  };
+  });
+};
+
+export const serializeBlob = (blob: BlobObject): RawObject => {
+  return new RawObject({
+    type: "blob",
+    data: blob.data,
+  });
 };

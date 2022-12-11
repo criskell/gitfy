@@ -1,4 +1,3 @@
-import fs from "fs/promises";
 import nodePath from "path";
 
 import { setupFilesystem, TestFilesystem } from "../__support__";

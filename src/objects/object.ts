@@ -7,11 +7,15 @@ export const isObjectType = (test: string): test is ObjectType =>
 
 export type GitObject = ParsedObject | RawObject;
 
-export type ParsedObject = TreeObject | CommitObject;
+export type ParsedObject = TreeObject | CommitObject | BlobObject;
 
-export interface RawObject {
-  type: ObjectType;
-  data: Buffer;
+export class RawObject {
+  public type: ObjectType;
+  public data: Buffer;
+
+  constructor(options: GitObject) {
+    Object.assign(this, options);
+  }
 }
 
 export interface BlobObject {

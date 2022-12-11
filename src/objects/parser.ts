@@ -1,11 +1,10 @@
 import {
   RawObject,
-  Commit,
-  GitObject,
-  Blob,
-  Tree,
-  TreeEntry,
+  CommitObject,
+  BlobObject,
+  TreeObject,
   isObjectType,
+  ParsedObject,
 } from "./object";
 import { parseMessage } from "./message";
 
@@ -20,29 +19,29 @@ export const unwrapObject = (wrapped: Buffer): RawObject => {
 
   if (!Number.isFinite(size)) return null;
 
-  const raw = wrapped.subarray(nullIndex + 1, nullIndex + size + 1);
+  const data = wrapped.subarray(nullIndex + 1, nullIndex + size + 1);
 
   return {
     type,
-    raw,
+    data,
   };
 };
 
-export const parseObject = (raw: RawObject): GitObject => {
+export const parseObject = (raw: RawObject): ParsedObject => {
   if (raw.type === "commit") return parseCommit(raw);
   if (raw.type === "blob") return parseBlob(raw);
   if (raw.type === "tree") return parseTree(raw);
 };
 
-export const parseBlob = ({ raw }: RawObject): Blob => {
+export const parseBlob = ({ data }: RawObject): BlobObject => {
   return {
     type: "blob",
-    content: raw,
+    data,
   };
 };
 
-export const parseCommit = ({ raw }: RawObject): Commit => {
-  const { headers, body } = parseMessage(raw.toString());
+export const parseCommit = ({ data }: RawObject): CommitObject => {
+  const { headers, body } = parseMessage(data.toString());
 
   if (
     !(headers.has("tree") && headers.has("author") && headers.has("committer"))
@@ -51,29 +50,31 @@ export const parseCommit = ({ raw }: RawObject): Commit => {
 
   return {
     type: "commit",
-    message: body,
-    treeId: headers.get("tree"),
-    author: headers.get("author"),
-    parentIds: headers.has("parent") ? headers.get("parent").split(" ") : [],
-    committer: headers.get("committer"),
-    gpgSignature: headers.get("gpgsig"),
+    data: {
+      message: body,
+      treeId: headers.get("tree"),
+      author: headers.get("author"),
+      parentIds: headers.has("parent") ? headers.get("parent").split(" ") : [],
+      committer: headers.get("committer"),
+      gpgSignature: headers.get("gpgsig"),
+    },
   };
 };
 
-export const parseTree = ({ raw }: RawObject): Tree => {
+export const parseTree = ({ data }: RawObject): TreeObject => {
   const entries = [];
 
   let cursor = 0;
 
-  while (cursor < raw.length) {
-    const spaceIndex = raw.indexOf(" ", cursor);
-    const mode = raw.subarray(cursor, spaceIndex);
-    const nullIndex = raw.indexOf("\0", spaceIndex);
-    const path = raw.subarray(spaceIndex + 1, nullIndex).toString("ascii");
+  while (cursor < data.length) {
+    const spaceIndex = data.indexOf(" ", cursor);
+    const mode = data.subarray(cursor, spaceIndex);
+    const nullIndex = data.indexOf("\0", spaceIndex);
+    const path = data.subarray(spaceIndex + 1, nullIndex).toString("ascii");
 
     cursor = nullIndex + 1 + 20;
 
-    const objectId = raw.subarray(nullIndex + 1, cursor).toString("hex");
+    const objectId = data.subarray(nullIndex + 1, cursor).toString("hex");
 
     const entry = {
       mode,
@@ -86,6 +87,6 @@ export const parseTree = ({ raw }: RawObject): Tree => {
 
   return {
     type: "tree",
-    entries,
+    data: entries,
   };
 };

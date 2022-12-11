@@ -10,36 +10,42 @@ export interface CheckoutCommand {
 }
 
 export const checkout = async (repo: Repository, command: CheckoutCommand): Promise<void> => {
-  const commitObject = await repo.objectStore.get(command.commitId);
+  const commit = await repo.objects.findOne({
+    type: "commit",
+    id: command.commitId,
+  });
 
-  if (commitObject.type !== "commit") return;
+  if (!commit) return;
 
-  const treeObject = await repo.objectStore.get(commitObject.treeId);
+  const tree = await repo.objects.findOne({
+    type: "tree",
+    id: commit.data.treeId,
+  });
 
-  if (treeObject.type !== "tree") return;
+  if (!tree) return;
 
   await fs.mkdir(command.workingTreePath, { recursive: true });
 
-  const rootEntries = treeObject.entries;
-  await mount(repo.objectStore, rootEntries, command.workingTreePath);
+  const entries = tree.data;
+  await mount(repo.objects, entries, command.workingTreePath);
 };
 
 const mount = async (
-  store: ObjectStore,
+  objects: ObjectStore,
   entries: TreeEntry[],
   mountPath: string
 ) => {
   for await (const entry of entries) {
     const objectMountPath = nodePath.join(mountPath, entry.path);
-    const object = await store.get(entry.objectId);
+    const object = await objects.findOne({ id: entry.objectId });
 
     if (object.type === "blob") {
-      await fs.writeFile(objectMountPath, object.content);
+      await fs.writeFile(objectMountPath, object.data);
     }
 
     if (object.type === "tree") {
       await fs.mkdir(objectMountPath);
-      await mount(store, object.entries, objectMountPath);
+      await mount(objects, object.data, objectMountPath);
     }
   }
 };

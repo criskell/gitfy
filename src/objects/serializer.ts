@@ -1,49 +1,60 @@
-import { GitObject, Tree, TreeEntry, RawObject, Commit, Blob } from "./object";
+import {
+  ParsedObject,
+  TreeObject,
+  TreeEntry,
+  RawObject,
+  CommitObject,
+  BlobObject,
+  GitObject,
+} from "./object";
 import { serializeMessage } from "./message";
 
-export const wrapObject = ({ type, raw }: RawObject): Buffer => {
-  const size = raw.length;
+export const wrapObject = ({ type, data }: RawObject): Buffer => {
+  const size = data.length;
   const header = Buffer.from(`${type} ${size}\0`, "ascii");
 
-  return Buffer.concat([header, raw]);
+  return Buffer.concat([header, data]);
 };
 
-export const serializeObject = (object: GitObject) => {
+export const serializeObject = (object: GitObject): RawObject => {
+  if (Buffer.isBuffer(object.data)) {
+    const x = object.data;
+  }
   if (object.type === "commit") return serializeCommit(object);
   if (object.type === "blob") return serializeBlob(object);
   if (object.type === "tree") return serializeTree(object);
 };
 
-export const serializeBlob = (blob: Blob): RawObject => {
+export const serializeBlob = ({ data }: BlobObject): RawObject => {
   return {
     type: "blob",
-    raw: blob.content,
+    data,
   };
 };
 
-export const serializeCommit = (commit: Commit): RawObject => {
+export const serializeCommit = (commit: CommitObject): RawObject => {
   const headers = new Map();
 
-  headers.set("tree", commit.treeId);
-  headers.set("author", commit.author);
-  headers.set("committer", commit.committer);
+  headers.set("tree", commit.data.treeId);
+  headers.set("author", commit.data.author);
+  headers.set("committer", commit.data.committer);
 
-  if (commit.parentIds.length) {
-    headers.set("parent", commit.parentIds.join(" "));
+  if (commit.data.parentIds.length) {
+    headers.set("parent", commit.data.parentIds.join(" "));
   }
 
-  if (commit.gpgSignature) {
-    headers.set("gpgsig", commit.gpgSignature);
+  if (commit.data.gpgSignature) {
+    headers.set("gpgsig", commit.data.gpgSignature);
   }
 
   const message = {
     headers,
-    body: commit.message,
+    body: commit.data.message,
   };
 
   return {
     type: "commit",
-    raw: Buffer.from(serializeMessage(message)),
+    data: Buffer.from(serializeMessage(message)),
   };
 };
 
@@ -54,9 +65,9 @@ export const serializeTreeEntry = (entry: TreeEntry): Buffer => {
   ]);
 };
 
-export const serializeTree = (tree: Tree): RawObject => {
+export const serializeTree = (tree: TreeObject): RawObject => {
   return {
     type: "tree",
-    raw: Buffer.concat(tree.entries.map((entry) => serializeTreeEntry(entry))),
+    data: Buffer.concat(tree.data.map((entry) => serializeTreeEntry(entry))),
   };
 };

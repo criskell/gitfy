@@ -40,7 +40,7 @@ export class Repository {
   constructor(
     public path: PathBuilder,
     public config: Config,
-    public objectStore: ObjectStore,
+    public objects: ObjectStore,
     public indexStore: IndexStore,
     public refStore: RefStore
   ) {}

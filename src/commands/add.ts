@@ -25,15 +25,15 @@ export const add = async (
 
 const addFile = async (repo: Repository, path: string): Promise<void> => {
   const content = await fs.readFile(path);
-  const objectId = await repo.objectStore.add({
+  const { id } = await repo.objects.add({
     type: "blob",
-    content,
+    data: content,
   });
   const relativePath = nodePath.relative(repo.path.root, path);
   const indexEntry = await createIndexEntry(
     repo.path.root,
     relativePath,
-    objectId,
+    id,
   );
 
   repo.indexStore.index.add(indexEntry);

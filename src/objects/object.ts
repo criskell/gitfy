@@ -1,29 +1,34 @@
-export type GitObject = Commit | Blob | Tree;
+export type ObjectType = typeof objectTypes[number];
 
 const objectTypes = ["commit", "tree", "blob"] as const;
-export type ObjectType = typeof objectTypes[number];
 
 export const isObjectType = (test: string): test is ObjectType =>
   objectTypes.includes(test as ObjectType);
 
+export type GitObject = ParsedObject | RawObject;
+
+export type ParsedObject = TreeObject | CommitObject | BlobObject;
+
 export interface RawObject {
   type: ObjectType;
-  raw: Buffer;
+  data: Buffer;
 }
 
-export interface Blob {
+export interface BlobObject {
   type: "blob";
-  content: Buffer;
+  data: Buffer;
 }
 
-export interface Commit {
+export interface CommitObject {
   type: "commit";
-  message: string;
-  treeId: string;
-  author: string;
-  parentIds: string[];
-  committer: string;
-  gpgSignature?: string;
+  data: {
+    message: string;
+    treeId: string;
+    author: string;
+    parentIds: string[];
+    committer: string;
+    gpgSignature?: string;
+  };
 }
 
 export interface TreeEntry {
@@ -32,7 +37,7 @@ export interface TreeEntry {
   objectId: string;
 }
 
-export class Tree {
+export interface TreeObject {
   type: "tree";
-  entries: TreeEntry[];
+  data: TreeEntry[];
 }

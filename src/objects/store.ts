@@ -1,65 +1,118 @@
 import fs from "fs/promises";
+import nodePath from "path";
 
 import { PathBuilder } from "../repository/path";
-import { GitObject, RawObject } from "./object";
+import { GitObject, ParsedObject, RawObject, ObjectType } from "./object";
 import { wrapObject, serializeObject } from "./serializer";
 import { unwrapObject, parseObject } from "./parser";
 import { decompress, compress } from "../util/compression";
 import { sha1 } from "../util/hash";
 
+export interface FindOneOptions {
+  /**
+   * O identificador de objeto para encontrar.
+   */
+  id: string;
+
+  /**
+   * O tipo de objeto para encontrar.
+   */
+  type: ObjectType;
+
+  /**
+   * Indica se o objeto encontrado deve ter seus dados
+   * não analisados.
+   *
+   * Esta opção por padrão deve ser false.
+   */
+  raw: boolean;
+}
+
+export type FindOneResult<Options extends FindOneOptions> =
+  Options["raw"] extends true
+    ? RawObject
+    : Extract<ParsedObject, { type: Options["type"] }>;
+
+type Test0 = FindOneResult<{
+  id: "aa";
+  raw: true;
+  type: "commit";
+}>;
+
+/**
+ * Banco de dados de objetos.
+ */
 export class ObjectStore {
   constructor(public path: PathBuilder) {}
 
-  public async get(objectId: string): Promise<GitObject | null> {
-    const rawObject = await this.getRaw(objectId);
+  /**
+   * Encontra um objeto e o retorna, de acordo com as opções dadas.
+   */
+  public async findOne<Options extends FindOneOptions>(
+    options: Options
+  ): Promise<FindOneResult<Options> | null>;
+  public async findOne(options: FindOneOptions): Promise<GitObject | null> {
+    const objectPath = this.path.object(options.id);
+    const wrapped = await getDecompressedObject(objectPath);
 
-    if (!rawObject) return null;
+    if (!wrapped) return null;
+
+    const rawObject = unwrapObject(wrapped);
+
+    if (rawObject.type !== options.type) return null;
+    if (options.raw) return rawObject;
 
     return parseObject(rawObject);
   }
 
-  public async add(object: GitObject): Promise<string> {
-    const rawObject = serializeObject(object);
-    return this.addRaw(rawObject);
-  }
+  /**
+   * Adiciona um objeto no banco de dados.
+   */
+  public async add(object: GitObject): Promise<{ id: string }> {
+    const rawObject =
+      Buffer.isBuffer(object.data) && object.type !== "blob"
+        ? object
+        : serializeObject(object);
 
-  public async addRaw(rawObject: RawObject): Promise<string> {
-    const wrapped = wrapObject(rawObject);
-    const id = sha1(wrapped);
-
-    const compressed = await compress(wrapped);
-    await this.writeEntry(id, compressed);
-
-    return id;
-  }
-
-  public async getRaw(objectId: string): Promise<RawObject | null> {
-    const compressed = await this.getEntry(objectId);
-
-    if (!compressed) return null;
-
-    const wrapped = await decompress(compressed);
-
-    return unwrapObject(wrapped);
-  }
-
-  public async writeEntry(objectId: string, compressed: Buffer): Promise<void> {
-    const path = this.path.object(objectId);
-
-    await fs.writeFile(path, compressed);
-  }
-
-  public async getEntry(objectId: string): Promise<Buffer | null> {
-    try {
-      const path = this.path.object(objectId);
-
-      return fs.readFile(path);
-    } catch (e) {
-      if (e.code === "ENOENT") {
-        return null;
-      }
-
-      throw e;
+    if (Buffer.isBuffer(object.data)) {
+      console.log(object.data);
     }
+
+    const wrapped = wrapObject(rawObject);
+    const objectId = sha1(wrapped);
+    const objectPath = this.path.object(objectId);
+
+    await saveObject(objectPath, wrapped);
+
+    return {
+      id: objectId,
+    };
   }
 }
+
+/**
+ * Obtém o conteúdo descomprimido de um objeto.
+ */
+export const getDecompressedObject = async (path: string): Promise<Buffer> => {
+  try {
+    const compressedObject = await fs.readFile(path);
+    return decompress(compressedObject);
+  } catch (e) {
+    if (e.code === "ENOTENT") {
+      return null;
+    }
+
+    throw e;
+  }
+};
+
+/**
+ * Salva um objeto com o corpo encapsulado com os cabeçalhos.
+ */
+export const saveObject = async (
+  path: string,
+  wrapped: Buffer
+): Promise<void> => {
+  await fs.mkdir(nodePath.dirname(path), { recursive: true });
+  await fs.writeFile(path, await compress(wrapped));
+};

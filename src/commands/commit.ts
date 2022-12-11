@@ -23,7 +23,7 @@ export const commit = async (
 
   const snapshot = snapshotFromEntries(indexEntries);
   const snapshotRoot = snapshot.get(".") as SnapshotDirectory;
-  const treeId = await createTreeObject(repo.objectStore, snapshotRoot);
+  const treeId = await createTreeObject(repo.objects, snapshotRoot);
 
   const message = command.message;
   const author = command.author;
@@ -32,13 +32,15 @@ export const commit = async (
   const headCommitId = await repo.refStore.resolve("HEAD");
   const parentIds = headCommitId ? [headCommitId] : [];
 
-  const commitId = await repo.objectStore.add({
+  const { id: commitId } = await repo.objects.add({
     type: "commit",
-    message,
-    treeId: treeId,
-    author,
-    parentIds,
-    committer,
+    data: {
+      message,
+      treeId: treeId,
+      author,
+      parentIds,
+      committer,
+    }
   });
 
   await repo.refStore.set(
@@ -132,8 +134,8 @@ const createTreeObject = async (
     })
   );
 
-  return objects.add({
+  return (await objects.add({
     type: "tree",
-    entries: treeEntries,
-  });
+    data: treeEntries,
+  })).id;
 };

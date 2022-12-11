@@ -18,10 +18,10 @@ describe("commands/add", () => {
     expect(entries.length).toBe(1);
     expect(entries[0]).toHaveProperty("file.path", "foo.txt");
 
-    const blobObject: any = await repo.objectStore.get(entries[0].objectId);
+    const blobObject: any = await repo.objects.get(entries[0].objectId);
 
     expect(blobObject).toBeDefined();
     expect(blobObject.type).toBe("blob");
-    expect(blobObject.content).toEqual(Buffer.from("Foo"));
+    expect(blobObject.data).toEqual(Buffer.from("Foo"));
   });
 });

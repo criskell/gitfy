@@ -1,9 +1,9 @@
 import {
-  ParsedObject,
   TreeObject,
   TreeEntry,
   RawObject,
   CommitObject,
+  GitObject,
   BlobObject,
 } from "./object";
 import { serializeMessage } from "./message";
@@ -15,17 +15,19 @@ export const wrapObject = ({ type, data }: RawObject): Buffer => {
   return Buffer.concat([header, data]);
 };
 
-export const serializeObject = (object: ParsedObject): RawObject => {
+export const serializeObject = (object: GitObject): RawObject => {
   if (object.type === "commit")
     return {
       type: "commit",
       data: serializeCommit(object),
     };
+
   if (object.type === "tree")
     return {
       type: "tree",
       data: serializeTree(object),
     };
+
   if (object.type === "blob")
     return {
       type: "blob",

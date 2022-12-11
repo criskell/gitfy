@@ -2,37 +2,27 @@ import fs from "fs/promises";
 import nodePath from "path";
 
 import { PathBuilder } from "../repository/path";
-import {
-  GitObject,
-  ParsedObject,
-  RawObject,
-  ObjectType,
-  isRawObject,
-} from "./object";
+import { GitObject, ObjectType } from "./object";
 import { wrapObject, serializeObject } from "./serializer";
 import { unwrapObject, parseObject } from "./parser";
 import { decompress, compress } from "../util/compression";
 import { sha1 } from "../util/hash";
 
-export interface FindOneOptions {
+interface FindByIdOptions {
   id: string;
   type?: ObjectType;
-  raw?: boolean;
 }
 
-export type FindOneResult<F extends FindOneOptions> = F["raw"] extends true
-  ? RawObject
-  : Extract<ParsedObject, { type: F["type"] }>;
+type FindByIdResult<F extends FindByIdOptions> = Extract<
+  GitObject,
+  { type: F["type"] }
+> | null;
 
 export class ObjectStore {
   constructor(public path: PathBuilder) {}
 
-  public async findOne<F extends FindOneOptions>(
-    options: F
-  ): Promise<FindOneResult<F> | null>;
-  public async findOne(options: FindOneOptions): Promise<GitObject | null> {
-    options.raw ??= false;
-
+  findOne<F extends FindByIdOptions>(options: F): Promise<FindByIdResult<F>>;
+  async findOne(options: FindByIdOptions): Promise<GitObject | null> {
     const objectPath = this.path.object(options.id);
     const wrapped = await getDecompressedObject(objectPath);
 
@@ -41,15 +31,12 @@ export class ObjectStore {
     const rawObject = unwrapObject(wrapped);
 
     if (options.type && rawObject.type !== options.type) return null;
-    if (options.raw) return rawObject;
 
     return parseObject(rawObject);
   }
 
   public async add(object: GitObject): Promise<{ id: string }> {
-    const wrapped = isRawObject(object)
-      ? wrapObject(object)
-      : wrapObject(serializeObject(object));
+    const wrapped = wrapObject(serializeObject(object));
     const objectId = sha1(wrapped);
     const objectPath = this.path.object(objectId);
 

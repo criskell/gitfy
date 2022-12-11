@@ -7,7 +7,7 @@ export const isObjectType = (test: string): test is ObjectType =>
 
 export type GitObject = ParsedObject | RawObject;
 
-export type ParsedObject = TreeObject | CommitObject | BlobObject;
+export type ParsedObject = TreeObject | CommitObject;
 
 export interface RawObject {
   type: ObjectType;

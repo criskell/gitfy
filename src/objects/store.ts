@@ -17,7 +17,7 @@ export interface FindOneOptions {
   /**
    * O tipo de objeto para encontrar.
    */
-  type: ObjectType;
+  type?: ObjectType;
 
   /**
    * Indica se o objeto encontrado deve ter seus dados
@@ -25,13 +25,12 @@ export interface FindOneOptions {
    *
    * Esta opção por padrão deve ser false.
    */
-  raw: boolean;
+  raw?: boolean;
 }
 
-export type FindOneResult<Options extends FindOneOptions> =
-  Options["raw"] extends true
-    ? RawObject
-    : Extract<ParsedObject, { type: Options["type"] }>;
+export type FindOneResult<F extends FindOneOptions> = F["raw"] extends true
+  ? RawObject
+  : Extract<ParsedObject, { type: F["type"] }>;
 
 type Test0 = FindOneResult<{
   id: "aa";
@@ -48,10 +47,12 @@ export class ObjectStore {
   /**
    * Encontra um objeto e o retorna, de acordo com as opções dadas.
    */
-  public async findOne<Options extends FindOneOptions>(
-    options: Options
-  ): Promise<FindOneResult<Options> | null>;
+  public async findOne<F extends FindOneOptions>(
+    options: F
+  ): Promise<FindOneResult<F> | null>;
   public async findOne(options: FindOneOptions): Promise<GitObject | null> {
+    options.raw ??= false;
+
     const objectPath = this.path.object(options.id);
     const wrapped = await getDecompressedObject(objectPath);
 
@@ -59,7 +60,7 @@ export class ObjectStore {
 
     const rawObject = unwrapObject(wrapped);
 
-    if (rawObject.type !== options.type) return null;
+    if (options.type && rawObject.type !== options.type) return null;
     if (options.raw) return rawObject;
 
     return parseObject(rawObject);
@@ -69,16 +70,9 @@ export class ObjectStore {
    * Adiciona um objeto no banco de dados.
    */
   public async add(object: GitObject): Promise<{ id: string }> {
-    const rawObject =
-      Buffer.isBuffer(object.data) && object.type !== "blob"
-        ? object
-        : serializeObject(object);
-
-    if (Buffer.isBuffer(object.data)) {
-      console.log(object.data);
-    }
-
-    const wrapped = wrapObject(rawObject);
+    const wrapped = Buffer.isBuffer(object.data)
+      ? wrapObject(object as any)
+      : wrapObject(serializeObject(object as any));
     const objectId = sha1(wrapped);
     const objectPath = this.path.object(objectId);
 

@@ -1,7 +1,6 @@
 import {
   RawObject,
   CommitObject,
-  BlobObject,
   TreeObject,
   isObjectType,
   ParsedObject,
@@ -29,15 +28,7 @@ export const unwrapObject = (wrapped: Buffer): RawObject => {
 
 export const parseObject = (raw: RawObject): ParsedObject => {
   if (raw.type === "commit") return parseCommit(raw);
-  if (raw.type === "blob") return parseBlob(raw);
   if (raw.type === "tree") return parseTree(raw);
-};
-
-export const parseBlob = ({ data }: RawObject): BlobObject => {
-  return {
-    type: "blob",
-    data,
-  };
 };
 
 export const parseCommit = ({ data }: RawObject): CommitObject => {

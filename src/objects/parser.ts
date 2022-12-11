@@ -21,19 +21,19 @@ export const unwrapObject = (wrapped: Buffer): RawObject => {
 
   const data = wrapped.subarray(nullIndex + 1, nullIndex + size + 1);
 
-  return new RawObject({
+  return {
     type,
     data,
-  });
+  };
 };
 
 export const parseObject = (raw: RawObject): ParsedObject => {
-  if (raw.type === "commit") return parseCommit(raw);
-  if (raw.type === "tree") return parseTree(raw);
-  if (raw.type === "blob") return parseBlob(raw);
+  if (raw.type === "commit") return parseCommit(raw.data);
+  if (raw.type === "tree") return parseTree(raw.data);
+  if (raw.type === "blob") return parseBlob(raw.data);
 };
 
-export const parseCommit = ({ data }: RawObject): CommitObject => {
+export const parseCommit = (data: Buffer): CommitObject => {
   const { headers, body } = parseMessage(data.toString());
 
   if (
@@ -54,7 +54,7 @@ export const parseCommit = ({ data }: RawObject): CommitObject => {
   };
 };
 
-export const parseTree = ({ data }: RawObject): TreeObject => {
+export const parseTree = (data: Buffer): TreeObject => {
   const entries = [];
 
   let cursor = 0;
@@ -84,7 +84,7 @@ export const parseTree = ({ data }: RawObject): TreeObject => {
   };
 };
 
-export const parseBlob = ({ data }: RawObject): BlobObject => {
+export const parseBlob = (data: Buffer): BlobObject => {
   return {
     type: "blob",
     data,

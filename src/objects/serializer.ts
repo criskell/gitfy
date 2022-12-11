@@ -16,12 +16,24 @@ export const wrapObject = ({ type, data }: RawObject): Buffer => {
 };
 
 export const serializeObject = (object: ParsedObject): RawObject => {
-  if (object.type === "commit") return serializeCommit(object);
-  if (object.type === "tree") return serializeTree(object);
-  if (object.type === "blob") return serializeBlob(object);
+  if (object.type === "commit")
+    return {
+      type: "commit",
+      data: serializeCommit(object),
+    };
+  if (object.type === "tree")
+    return {
+      type: "tree",
+      data: serializeTree(object),
+    };
+  if (object.type === "blob")
+    return {
+      type: "blob",
+      data: serializeBlob(object),
+    };
 };
 
-export const serializeCommit = (commit: CommitObject): RawObject => {
+export const serializeCommit = (commit: CommitObject): Buffer => {
   const headers = new Map();
 
   headers.set("tree", commit.data.treeId);
@@ -41,10 +53,7 @@ export const serializeCommit = (commit: CommitObject): RawObject => {
     body: commit.data.message,
   };
 
-  return new RawObject({
-    type: "commit",
-    data: Buffer.from(serializeMessage(message)),
-  });
+  return Buffer.from(serializeMessage(message));
 };
 
 export const serializeTreeEntry = (entry: TreeEntry): Buffer => {
@@ -54,16 +63,10 @@ export const serializeTreeEntry = (entry: TreeEntry): Buffer => {
   ]);
 };
 
-export const serializeTree = (tree: TreeObject): RawObject => {
-  return new RawObject({
-    type: "tree",
-    data: Buffer.concat(tree.data.map((entry) => serializeTreeEntry(entry))),
-  });
+export const serializeTree = (tree: TreeObject): Buffer => {
+  return Buffer.concat(tree.data.map((entry) => serializeTreeEntry(entry)));
 };
 
-export const serializeBlob = (blob: BlobObject): RawObject => {
-  return new RawObject({
-    type: "blob",
-    data: blob.data,
-  });
+export const serializeBlob = (blob: BlobObject): Buffer => {
+  return blob.data;
 };

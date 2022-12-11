@@ -2,29 +2,21 @@ import fs from "fs/promises";
 import nodePath from "path";
 
 import { PathBuilder } from "../repository/path";
-import { GitObject, ParsedObject, RawObject, ObjectType } from "./object";
+import {
+  GitObject,
+  ParsedObject,
+  RawObject,
+  ObjectType,
+  isRawObject,
+} from "./object";
 import { wrapObject, serializeObject } from "./serializer";
 import { unwrapObject, parseObject } from "./parser";
 import { decompress, compress } from "../util/compression";
 import { sha1 } from "../util/hash";
 
 export interface FindOneOptions {
-  /**
-   * O identificador de objeto para encontrar.
-   */
   id: string;
-
-  /**
-   * O tipo de objeto para encontrar.
-   */
   type?: ObjectType;
-
-  /**
-   * Indica se o objeto encontrado deve ter seus dados
-   * não analisados.
-   *
-   * Esta opção por padrão deve ser false.
-   */
   raw?: boolean;
 }
 
@@ -32,15 +24,9 @@ export type FindOneResult<F extends FindOneOptions> = F["raw"] extends true
   ? RawObject
   : Extract<ParsedObject, { type: F["type"] }>;
 
-/**
- * Banco de dados de objetos.
- */
 export class ObjectStore {
   constructor(public path: PathBuilder) {}
 
-  /**
-   * Encontra um objeto e o retorna, de acordo com as opções dadas.
-   */
   public async findOne<F extends FindOneOptions>(
     options: F
   ): Promise<FindOneResult<F> | null>;
@@ -60,14 +46,10 @@ export class ObjectStore {
     return parseObject(rawObject);
   }
 
-  /**
-   * Adiciona um objeto no banco de dados.
-   */
   public async add(object: GitObject): Promise<{ id: string }> {
-    const wrapped =
-      object instanceof RawObject
-        ? wrapObject(object)
-        : wrapObject(serializeObject(object));
+    const wrapped = isRawObject(object)
+      ? wrapObject(object)
+      : wrapObject(serializeObject(object));
     const objectId = sha1(wrapped);
     const objectPath = this.path.object(objectId);
 
@@ -79,9 +61,6 @@ export class ObjectStore {
   }
 }
 
-/**
- * Obtém o conteúdo descomprimido de um objeto.
- */
 export const getDecompressedObject = async (path: string): Promise<Buffer> => {
   try {
     const compressedObject = await fs.readFile(path);
@@ -95,9 +74,6 @@ export const getDecompressedObject = async (path: string): Promise<Buffer> => {
   }
 };
 
-/**
- * Salva um objeto com o corpo encapsulado com os cabeçalhos.
- */
 export const saveObject = async (
   path: string,
   wrapped: Buffer

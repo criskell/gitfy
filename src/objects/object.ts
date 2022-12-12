@@ -5,6 +5,10 @@ const objectTypes = ["commit", "tree", "blob"] as const;
 export const isObjectType = (test: string): test is ObjectType =>
   objectTypes.includes(test as ObjectType);
 
+export const isRawObject = (
+  object: GitObject | RawObject
+): object is RawObject => Buffer.isBuffer(object.data);
+
 export type GitObject = CommitObject | TreeObject | BlobObject;
 
 export interface RawObject {

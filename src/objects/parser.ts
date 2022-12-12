@@ -3,7 +3,7 @@ import {
   CommitObject,
   TreeObject,
   isObjectType,
-  ParsedObject,
+  GitObject,
   BlobObject,
 } from "./object";
 import { parseMessage } from "./message";
@@ -27,7 +27,7 @@ export const unwrapObject = (wrapped: Buffer): RawObject => {
   };
 };
 
-export const parseObject = (raw: RawObject): ParsedObject => {
+export const parseObject = (raw: RawObject): GitObject => {
   if (raw.type === "commit") return parseCommit(raw.data);
   if (raw.type === "tree") return parseTree(raw.data);
   if (raw.type === "blob") return parseBlob(raw.data);

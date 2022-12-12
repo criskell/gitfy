@@ -1,7 +1,6 @@
 import fs from "fs/promises";
 
 import { Index } from "./index";
-import { IndexEntry } from "./entry";
 import { exists } from "../util/filesystem";
 
 export class IndexStore {
@@ -15,13 +14,13 @@ export class IndexStore {
     return new IndexStore(path, index);
   }
 
-  public constructor(public path: string, public index: Index) {}
+  public constructor(public path: string, public snapshot: Index) {}
 
   public async reload(): Promise<void> {
-    this.index = await fs.readFile(this.path).then(Index.from);
+    this.snapshot = await fs.readFile(this.path).then(Index.from);
   }
 
   public async save(): Promise<void> {
-    await fs.writeFile(this.path, this.index.serialize());
+    await fs.writeFile(this.path, this.snapshot.serialize());
   }
 }

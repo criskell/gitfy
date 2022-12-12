@@ -12,6 +12,6 @@
       "sourceMap": true,
       "allowSyntheticDefaultImports": true,
       "esModuleInterop": true,
-      "isolatedModules": true
+      "strictBindCallApply": true
    }
 }

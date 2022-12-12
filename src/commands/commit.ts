@@ -18,7 +18,7 @@ export const commit = async (
   repo: Repository,
   command: CommitCommand
 ): Promise<CommitResult> => {
-  const indexEntries = repo.indexStore.index.entries();
+  const indexEntries = repo.staging.snapshot.entries();
 
   const snapshot = snapshotFromEntries(indexEntries);
   const snapshotRoot = snapshot.get(".") as SnapshotDirectory;
@@ -28,7 +28,7 @@ export const commit = async (
   const author = command.author;
   const committer = command.committer || command.author;
 
-  const headCommitId = await repo.refStore.resolve("HEAD");
+  const headCommitId = await repo.refs.resolve("HEAD");
   const parentIds = headCommitId ? [headCommitId] : [];
 
   const { id: commitId } = await repo.objects.add({
@@ -42,12 +42,7 @@ export const commit = async (
     },
   });
 
-  await repo.refStore.set(
-    (
-      await repo.refStore.getDirectRef("HEAD")
-    ).name,
-    commitId
-  );
+  await repo.refs.set((await repo.refs.getDirectRef("HEAD")).name, commitId);
 
   return {
     commitId,

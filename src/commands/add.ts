@@ -20,7 +20,7 @@ export const add = async (
     : [startPath];
 
   await Promise.all(matchedFiles.map((path) => addFile(repo, path)));
-  await repo.indexStore.save();
+  await repo.staging.save();
 };
 
 const addFile = async (repo: Repository, path: string): Promise<void> => {
@@ -32,5 +32,5 @@ const addFile = async (repo: Repository, path: string): Promise<void> => {
   const relativePath = nodePath.relative(repo.path.root, path);
   const indexEntry = await createIndexEntry(repo.path.root, relativePath, id);
 
-  repo.indexStore.index.add(indexEntry);
+  repo.staging.snapshot.add(indexEntry);
 };

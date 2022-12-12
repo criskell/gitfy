@@ -16,6 +16,12 @@ export class RefStore {
     await fs.writeFile(fullPath, content + "\n", "ascii");
   }
 
+  public async delete(name: string) {
+    const fullPath = this.path(name);
+
+    await fs.unlink(fullPath);
+  }
+
   public async link(from: string, to: string) {
     await this.set(from, `ref: ${to}`);
   }

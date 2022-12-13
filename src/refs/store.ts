@@ -17,7 +17,7 @@ export class RefStore {
   resolve(
     name: string,
     options?: { minDepth?: number; maxDepth?: number; }
-  ): Promise<Ref | null> {
+  ): Promise<Ref | { name: string } | null> {
     options ??= {};
     options.minDepth ??= 1;
     options.maxDepth ??= Infinity;
@@ -25,7 +25,7 @@ export class RefStore {
     const resolve = async (name, currentDepth) => {
       const raw = await this.read(name);
 
-      if (!raw) return null;
+      if (!raw) return { name };
 
       const ref = {};
 
@@ -44,7 +44,7 @@ export class RefStore {
 
     return resolve(name, 1);
   }
-  
+
   path(name: string): string {
     return nodePath.join(this.directory, name);
   }
@@ -53,7 +53,7 @@ export class RefStore {
     try {
       return (await fs.readFile(this.path(name), "ascii")).slice(0, -1);
     } catch (e) {
-      if (e.code === "ENOTENT") {
+      if (e.code === "ENOENT") {
         return null;
       }
 

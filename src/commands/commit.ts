@@ -28,10 +28,12 @@ export const commit = async (
   const author = command.author;
   const committer = command.committer || command.author;
 
-  const headCommitId = await repo.refs.resolve("HEAD");
+  const currentHead = await repo.refs.resolve("HEAD");
+
+  const headCommitId = currentHead?.value;
   const parentIds = headCommitId ? [headCommitId] : [];
 
-  const { id: commitId } = await repo.objects.add({
+  const insert = await repo.objects.add({
     type: "commit",
     data: {
       message,
@@ -42,10 +44,12 @@ export const commit = async (
     },
   });
 
-  await repo.refs.set((await repo.refs.getDirectRef("HEAD")).name, commitId);
+  currentHead.value = insert.id;
+
+  await repo.refs.save(currentHead);
 
   return {
-    commitId,
+    commitId: insert.id,
   };
 };
 

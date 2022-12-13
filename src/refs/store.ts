@@ -27,11 +27,14 @@ export class RefStore {
 
       if (!raw) return { name };
 
-      const ref = {};
+      const symbolic = raw.startsWith("ref:");
+      const value = symbolic ? raw.slice(5) : raw;
 
-      ref.name = name;
-      ref.symbolic = raw.startsWith("ref: ");
-      ref.value = ref.symbolic ? raw.slice(5) : raw;
+      const ref = {
+        name,
+        value,
+        symbolic,
+      };
 
       if (ref.symbolic) {
         return currentDepth < options.maxDepth

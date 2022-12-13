@@ -1,8 +1,8 @@
 import nodePath from "path";
 
-import { add, AddCommand } from "../commands/add";
-import { commit, CommitCommand } from "../commands/commit";
-import { checkout, CheckoutCommand } from "../commands/checkout";
+import { add } from "../commands/add";
+import { commit } from "../commands/commit";
+import { checkout } from "../commands/checkout";
 import { PathBuilder } from "./path";
 import { Config } from "./config";
 import { ObjectStore } from "../objects";
@@ -41,19 +41,13 @@ export class Repository {
     public path: PathBuilder,
     public config: Config,
     public objects: ObjectStore,
-    public indexStore: IndexStore,
-    public refStore: RefStore
+    public staging: IndexStore,
+    public refs: RefStore
   ) {}
 
-  public add(command: AddCommand) {
-    return add(this, command);
-  }
-
-  public commit(command: CommitCommand) {
-    return commit(this, command);
-  }
-
-  public checkout(command: CheckoutCommand) {
-    return checkout(this, command);
-  }
+  commands = {
+    add: add.bind(null, this),
+    checkout: checkout.bind(null, this),
+    commit: commit.bind(null, this),
+  };
 }

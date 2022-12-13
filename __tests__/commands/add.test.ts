@@ -8,11 +8,11 @@ describe("commands/add", () => {
       },
     });
 
-    await repo.add({ path: "foo.txt" });
+    await repo.commands.add({ path: "foo.txt" });
 
-    await repo.indexStore.reload();
+    await repo.staging.reload();
 
-    const entries = repo.indexStore.index.entries();
+    const entries = repo.staging.snapshot.entries();
 
     expect(entries.length).toBe(1);
     expect(entries[0]).toHaveProperty("file.path", "foo.txt");

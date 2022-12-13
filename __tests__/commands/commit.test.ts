@@ -17,10 +17,13 @@ describe("commands/commit", () => {
       testName: "commit",
     });
 
-    await repo.add({ path: "foo.txt" });
-    await repo.add({ path: "bar/test/a.txt" });
+    await repo.commands.add({ path: "foo.txt" });
+    await repo.commands.add({ path: "bar/test/a.txt" });
 
-    const response = await repo.commit({ message: "blabla", author: "lol" });
+    const response = await repo.commands.commit({
+      message: "blabla",
+      author: "lol",
+    });
 
     await fs.rm(nodePath.join(repo.path.root, "foo.txt"));
     await fs.rm(nodePath.join(repo.path.root, "bar/test/a.txt"));
@@ -30,7 +33,7 @@ describe("commands/commit", () => {
       "working-tree"
     );
 
-    await repo.checkout({
+    await repo.commands.checkout({
       commitId: response.commitId,
       workingTreePath,
     });

@@ -1,60 +1,88 @@
 import fs from "fs/promises";
 import nodePath from "path";
 
-export interface Ref {
-  name: string;
-  content?: string;
-}
+import { Ref, DirectRef } from "./ref";
+import { listFiles } from "../util/filesystem";
 
 export class RefStore {
-  public constructor(public gitDirectory: string) {}
+  public constructor(public directory: string) {}
 
-  public async set(name: string, content: string) {
-    const fullPath = this.path(name);
+  async save(ref: Ref): Promise<void> {
+    const value = ref.symbolic ? `ref: ${ref.value}` : ref.value;
 
-    await fs.mkdir(nodePath.dirname(fullPath), { recursive: true });
-    await fs.writeFile(fullPath, content + "\n", "ascii");
+    await this.write(ref.name, value);
   }
 
-  public async link(from: string, to: string) {
-    await this.set(from, `ref: ${to}`);
-  }
+  resolve(name: string): Promise<DirectRef | null>;
+  resolve(
+    name: string,
+    options?: { minDepth?: number; maxDepth?: number; }
+  ): Promise<Ref | null> {
+    options ??= {};
+    options.minDepth ??= 1;
+    options.maxDepth ??= Infinity;
 
-  public async getDirectRef(name: string): Promise<Ref> {
-    try {
-      const path = this.path(name);
-      const data = await fs.readFile(path, "ascii");
-      const content = data.slice(0, -1);
+    const resolve = async (name, currentDepth) => {
+      const raw = await this.read(name);
 
-      if (content.startsWith("ref: ")) {
-        const linkedRef = content.slice(5);
-        return this.getDirectRef(linkedRef);
+      if (!raw) return null;
+
+      const ref = {};
+
+      ref.name = name;
+      ref.symbolic = raw.startsWith("ref: ");
+      ref.value = ref.symbolic ? raw.slice(5) : raw;
+
+      if (ref.symbolic) {
+        return currentDepth < options.maxDepth
+          ? resolve(ref.value, currentDepth + 1)
+          : null;
       }
 
-      return {
-        name,
-        content,
-      };
+      return currentDepth < options.minDepth ? null : ref;
+    };
+
+    return resolve(name, 1);
+  }
+  
+  path(name: string): string {
+    return nodePath.join(this.directory, name);
+  }
+
+  async read(name: string): Promise<string> {
+    try {
+      return (await fs.readFile(this.path(name), "ascii")).slice(0, -1);
     } catch (e) {
-      if (e.code === "ENOENT") {
-        return {
-          name,
-        };
+      if (e.code === "ENOTENT") {
+        return null;
       }
 
       throw e;
     }
   }
-
-  public async resolve(name: string): Promise<string | null> {
-    const { content } = await this.getDirectRef(name);
-
-    if (!content) return null;
-
-    return content;
+  
+  async write(name: string, value: string): Promise<void> {
+    const path = this.path(name);
+    await fs.mkdir(nodePath.dirname(path), { recursive: true });
+    await fs.writeFile(path, value + "\n", "ascii");
+  }
+  
+  async remove(name: string): Promise<void> {
+    await fs.unlink(this.path(name));
+  }
+  
+  async rename(sourceName: string, targetName: string): Promise<void> {
+    await fs.rename(this.path(sourceName), this.path(targetName));
   }
 
-  public path(name: string) {
-    return nodePath.join(this.gitDirectory, name);
+  async list(options?: { dir?: string }): Promise<string[]> {
+    options ??= {};
+
+    const refsDir = this.path("refs");
+    const directory = nodePath.join(refsDir, options.dir || "");
+    const names = (await listFiles(directory))
+      .map((path) => path.replace(this.directory + "/", ""));
+
+    return names;
   }
 }

@@ -5,7 +5,9 @@
   "scripts": {
     "lint": "eslint . --ext ts",
     "lint:fix": "eslint --ext .ts --fix",
-    "format": "prettier --config .prettierrc 'src/**/*.ts' --write"
+    "format": "prettier --config .prettierrc 'src/**/*.ts' --write",
+    "test": "jest --no-cache",
+    "test:watch": "npm run test -- --watch"
   },
   "devDependencies": {
     "@types/jest": "^29.2.3",

@@ -5,4 +5,12 @@ module.exports = {
   testEnvironment: "node",
   testMatch: ["**/*.test.(ts|js)"],
   setupFilesAfterEnv: ["<rootDir>/__tests__/__support__/setup.ts"],
+  transform: {
+    "^.+\\.tsx?$": [
+      "ts-jest",
+      {
+        isolatedModules: true,
+      },
+    ],
+  }
 };

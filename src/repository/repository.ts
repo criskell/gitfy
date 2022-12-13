@@ -1,14 +1,12 @@
 import nodePath from "path";
 
-import { add } from "../commands/add";
-import { commit } from "../commands/commit";
-import { checkout } from "../commands/checkout";
 import { PathBuilder } from "./path";
 import { Config } from "./config";
 import { ObjectStore } from "../objects";
 import { IndexStore } from "../staging";
 import { findGitDirectory } from "../util/repository";
 import { RefStore } from "../refs";
+import { initCommands } from "./commands";
 
 export const loadRepository = async (
   path?: string
@@ -45,9 +43,5 @@ export class Repository {
     public refs: RefStore
   ) {}
 
-  commands = {
-    add: add.bind(null, this),
-    checkout: checkout.bind(null, this),
-    commit: commit.bind(null, this),
-  };
+  commands = initCommands(this);
 }

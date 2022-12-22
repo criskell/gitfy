@@ -6,7 +6,7 @@ import { ObjectStore } from "../objects";
 import { IndexStore } from "../staging";
 import { findGitDirectory } from "../util/repository";
 import { RefStore } from "../refs";
-import { initCommands } from "./commands";
+import { makeCommandRegistry } from "../commands";
 
 export const loadRepository = async (
   path?: string
@@ -43,5 +43,5 @@ export class Repository {
     public refs: RefStore
   ) {}
 
-  commands = initCommands(this);
+  commands = makeCommandRegistry(this);
 }

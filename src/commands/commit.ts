@@ -14,10 +14,7 @@ export interface CommitResult {
   commitId: string;
 }
 
-export const commit = async (
-  repo: Repository,
-  command: CommitCommand
-): Promise<CommitResult> => {
+export const commit = (repo: Repository) => async (command: CommitCommand): Promise<CommitResult> => {
   const indexEntries = repo.staging.snapshot.entries();
 
   const snapshot = snapshotFromEntries(indexEntries);

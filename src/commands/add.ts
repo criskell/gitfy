@@ -9,10 +9,7 @@ export interface AddCommand {
   path: string;
 }
 
-export const add = async (
-  repo: Repository,
-  command: AddCommand
-): Promise<void> => {
+export const add = (repo: Repository) => async (command: AddCommand): Promise<void> => {
   const startPath = nodePath.resolve(repo.path.root, command.path);
 
   const matchedFiles = (await fs.lstat(startPath)).isDirectory()

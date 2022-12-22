@@ -7,6 +7,8 @@ export interface ConfigSchema {
     filemode: boolean;
     bare: boolean;
   };
+
+  remote?: any;
 }
 
 export const DEFAULT_CONFIG: ConfigSchema = {
@@ -22,20 +24,28 @@ export const decode = ini.decode;
 
 export class Config {
   public static async load(path: string): Promise<Config> {
-    const decoded = ini.decode(await fs.readFile(path, "utf8"));
+    const config = new Config(path);
 
-    decoded.core ??= {};
-    decoded.core.repositoryformatversion ??= 0;
-    decoded.core.filemode ??= false;
-    decoded.core.bare ??= false;
+    await config.load();
 
-    return new Config(path, decoded);
+    return config;
   }
 
   constructor(
     public path: string,
     public data: ConfigSchema = DEFAULT_CONFIG
   ) {}
+
+  public async load() {
+    const decoded = ini.decode(await fs.readFile(this.path, "utf8"));
+
+    decoded.core ??= {};
+    decoded.core.repositoryformatversion ??= 0;
+    decoded.core.filemode ??= false;
+    decoded.core.bare ??= false;
+
+    this.data = decoded;
+  }
 
   public async save() {
     const encoded = ini.encode(this.data);

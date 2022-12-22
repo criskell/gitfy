@@ -2,7 +2,7 @@ import { add } from "./add";
 import { commit } from "./commit";
 import { checkout } from "./checkout";
 import { createBranch, deleteBranch } from "./branch";
-import { addRemote } from "./remote";
+import { addRemote, removeRemote } from "./remote";
 import { Repository } from "../repository";
 
 export const makeCommandRegistry = (repo: Repository) => ({
@@ -12,4 +12,5 @@ export const makeCommandRegistry = (repo: Repository) => ({
   createBranch: createBranch(repo),
   deleteBranch: deleteBranch(repo),
   addRemote: addRemote(repo),
+  removeRemote: removeRemote(repo),
 });

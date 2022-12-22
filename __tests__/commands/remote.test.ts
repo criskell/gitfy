@@ -16,4 +16,21 @@ describe("commands/remote", () => {
       });
     });
   });
+
+  describe("removeRemote", () => {
+    it("deve remover um remoto", async () => {
+      const repo = await setupRepository();
+
+      repo.config.data.remote = {
+        origin: {
+          url: "https://example.com/any-repository-url.git",
+          fetch: "+refs/heads/*:refs/remotes/origin/*",
+        },        
+      };
+
+      await repo.commands.removeRemote({ remoteName: "origin" });
+
+      expect(repo.config.data).not.toHaveProperty("remote.origin");
+    });
+  });
 });

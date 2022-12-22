@@ -83,7 +83,7 @@ export const setupFilesystem = async (
 };
 
 export const setupRepository = async (
-  options: Parameters<typeof setupFilesystem>[0]
+  options: Parameters<typeof setupFilesystem>[0] = {}
 ): Promise<Repository> => {
   options.init = true;
 
